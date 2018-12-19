@@ -5,6 +5,7 @@ with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Ordered_Sets;
 --  with POSIX; use POSIX;
 with Ada.Calendar;
+with Interfaces.C.Strings;
 
 package Slurm.Utils is
    Version : String := "v0.01";
@@ -51,8 +52,9 @@ package Slurm.Utils is
 --     function To_Hash_String (S : String) return Hash_String_Type;
 --
 --  --     procedure To_String_List (Source  : String; Dest : out POSIX_String_List);
---     function To_User_Name (User : String) return User_Name;
---     function To_String (User : User_Name) return String;
+   function To_User_Name (User : String) return User_Name;
+   function To_String (User : User_Name) return String;
+   function To_String (Source : Interfaces.C.Strings.chars_ptr) return String;
 --
 --     function To_Time (Time_String : String) return Ada.Calendar.Time;
 --     function User_Is_Manager (User : String) return Boolean;
