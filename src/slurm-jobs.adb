@@ -1,10 +1,11 @@
+with Ada.Calendar.Conversions;
+with Interfaces.C.Strings; use Interfaces.C.Strings;
+with Interfaces.C.Pointers;
 with POSIX;
 with POSIX.C; use POSIX.C;
 with Slurm.C_Types; use Slurm.C_Types;
 with Slurm.Errors;
-with Interfaces.C.Strings; use Interfaces.C.Strings;
-with Interfaces.C.Pointers;
-with Ada.Calendar.Conversions;
+with Ada.Text_IO;
 
 
 package body Slurm.Jobs is
@@ -215,6 +216,10 @@ package body Slurm.Jobs is
    JOB_REQUEUE_FED    : constant uint32_t := 16#00100000#; --  Job is being requeued by federation
    JOB_RESV_DEL_HOLD : constant uint32_t := 16#00200000#; --  Job is hold
 
+   function getpwuid (c_uid : uid_t) return passwd_ptr;
+   pragma Import (C, getpwuid, "getpwuid");
+
+
    procedure Init (J : out Job; Ptr : job_info_ptr);
 
 
@@ -317,7 +322,21 @@ package body Slurm.Jobs is
       J.Gres := To_Unbounded_String (To_String (Ptr.all.gres));
       J.ID := Integer (Ptr.all.job_id);
       J.Name := To_Unbounded_String (To_String (Ptr.all.name));
-      J.Owner := To_User_Name (To_String (Ptr.all.user_name));
+      declare
+         Given_Name : String := To_String (Ptr.all.user_name);
+         pw_entry : passwd_ptr;
+      begin
+         if Given_Name /= "" then
+            J.Owner := To_User_Name (Given_Name);
+         else
+            pw_entry := getpwuid (uid_t (Ptr.all.user_id));
+            if pw_entry = null
+            then
+               raise Constraint_Error;
+            end if;
+            J.Owner := To_User_Name (POSIX.To_String (Form_POSIX_String (pw_entry.all.pw_name)));
+         end if;
+      end;
       J.Priority := Natural (Ptr.all.priority);
       J.Project := To_Unbounded_String (To_String (Ptr.all.wckey));
       J.Start_Time := Ada.Calendar.Conversions.To_Ada_Time (Interfaces.C.long (Ptr.all.start_time));
