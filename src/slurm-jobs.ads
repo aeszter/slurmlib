@@ -1,4 +1,4 @@
-
+with Ada.Calendar;
 with Ada.Containers;
 with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
@@ -15,6 +15,21 @@ package Slurm.Jobs is
 --      slurm_free_job_info_msg - Free storage allocated by slurm_load_jobs.
 --     slurm_kill_job - Signal or cancel a job.
 --  slurm_complete_job - Note completion of a job. Releases resource allocation for the job.
+   type states is (
+        JOB_PENDING,
+        JOB_RUNNING,
+        JOB_SUSPENDED,
+        JOB_COMPLETE,
+        JOB_CANCELLED,
+        JOB_FAILED,
+        JOB_TIMEOUT,
+        JOB_NODE_FAIL,
+        JOB_PREEMPTED,
+        JOB_BOOT_FAIL,
+        JOB_DEADLINE,
+        JOB_OOM);
+
+
 
    type Job is private;
    type List is private;
@@ -23,20 +38,33 @@ package Slurm.Jobs is
    function Has_Element (Position : Cursor) return Boolean;
    procedure Iterate (Collection : List;
                       Process    : not null access procedure (Position : Cursor));
+   function Get_Gres (J : Job) return String;
    function Get_ID (J : Job) return Positive;
    function Get_Name (J : Job) return String;
    function Get_Owner (J : Job) return User_Name;
+   function Get_Priority (J : Job) return Natural;
    function Get_Project (J : Job) return String;
+   function Get_Start_Time (J : Job) return Ada.Calendar.Time;
+   function Get_State (J : Job) return String;
+   function Get_Submission_Time (J : Job) return Ada.Calendar.Time;
+   function Get_Tasks (J : Job) return Positive;
+   function Has_Error (J : Job) return Boolean;
 
    function Load_Jobs return List;
 
 private
 
    type Job is record
+      Gres : Unbounded_String;
       ID      : Positive;
       Name    : Unbounded_String;
       Owner   : User_Name;
+      Priority : Natural;
       Project : Unbounded_String;
+      Start_Time : Ada.Calendar.Time;
+      State      : states;
+      Submission_Time : Ada.Calendar.Time;
+      Tasks : Natural;
    end record;
 
    package Lists is new ada.Containers.Doubly_Linked_Lists (Element_Type => Job);

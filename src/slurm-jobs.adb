@@ -4,6 +4,7 @@ with Slurm.C_Types; use Slurm.C_Types;
 with Slurm.Errors;
 with Interfaces.C.Strings; use Interfaces.C.Strings;
 with Interfaces.C.Pointers;
+with Ada.Calendar.Conversions;
 
 
 package body Slurm.Jobs is
@@ -178,6 +179,42 @@ package body Slurm.Jobs is
    procedure slurm_free_job_info_msg (job_info_msg_p : job_info_msg_ptr);
    pragma import (C, slurm_free_job_info_msg, "slurm_free_job_info_msg");
 
+   type Enum_To_State_Map is array (uint32_t range 0 .. 11) of states;
+   Enum_To_State : constant Enum_To_State_Map :=
+                     (0 => JOB_PENDING,
+                      1 => JOB_RUNNING,
+                      2 => JOB_SUSPENDED,
+                      3 => JOB_COMPLETE,
+                      4 => JOB_CANCELLED,
+                      5 => JOB_FAILED,
+                      6 => JOB_TIMEOUT,
+                      7 => JOB_NODE_FAIL,
+                      8 => JOB_PREEMPTED,
+                      9 => JOB_BOOT_FAIL,
+                      10 => JOB_DEADLINE,
+                      11 => JOB_OOM);
+
+   JOB_STATE_BASE : constant uint32_t := 16#ff#;
+   JOB_LAUNCH_FAILED : constant uint32_t := 16#00000100#;
+   JOB_UPDATE_DB     : constant uint32_t := 16#00000200#; --  Send job start to database again
+   JOB_REQUEUE       : constant uint32_t := 16#00000400#; --  Requeue job in completing state
+   JOB_REQUEUE_HOLD  : constant uint32_t := 16#00000800#; --  Requeue any job in hold
+   JOB_SPECIAL_EXIT  : constant uint32_t := 16#00001000#; --  Requeue an exit job in hold
+   JOB_RESIZING      : constant uint32_t := 16#00002000#; --  Size of job about to change, flag set
+                                --      before calling accounting functions
+                                --      immediately before job changes size
+   JOB_CONFIGURING   : constant uint32_t := 16#00004000#; --  Allocated nodes booting
+   JOB_COMPLETING    : constant uint32_t := 16#00008000#; --  Waiting for epilog completion
+   JOB_STOPPED       : constant uint32_t := 16#00010000#; --  Job is stopped state (holding resources,
+                                                          --                      but sent SIGSTOP
+   JOB_RECONFIG_FAIL : constant uint32_t := 16#00020000#; --  Node configuration for job failed,
+--                                      not job state, just job requeue flag
+   JOB_POWER_UP_NODE  : constant uint32_t := 16#00040000#; --  Allocated powered down nodes,
+                                                           -- waiting for reboot
+   JOB_REVOKED        : constant uint32_t := 16#00080000#; --  Sibling job revoked
+   JOB_REQUEUE_FED    : constant uint32_t := 16#00100000#; --  Job is being requeued by federation
+   JOB_RESV_DEL_HOLD : constant uint32_t := 16#00200000#; --  Job is hold
+
    procedure Init (J : out Job; Ptr : job_info_ptr);
 
 
@@ -239,12 +276,54 @@ package body Slurm.Jobs is
       return To_String (J.Project);
    end Get_Project;
 
+   function Get_Gres (J : Job) return String is
+   begin
+      return To_String (J.Gres);
+   end Get_Gres;
+
+   function Get_Priority (J : Job) return Natural is
+   begin
+      return J.Priority;
+   end Get_Priority;
+
+   function Get_Start_Time (J : Job) return Ada.Calendar.Time is
+   begin
+      return J.Start_Time;
+   end Get_Start_Time;
+
+   function Get_State (J : Job) return String is
+   begin
+      return J.State'Img;
+   end Get_State;
+
+   function Get_Submission_Time (J : Job) return Ada.Calendar.Time is
+   begin
+      return J.Submission_Time;
+   end Get_Submission_Time;
+
+   function Get_Tasks (J : Job) return Positive is
+   begin
+      return J.Tasks;
+   end Get_Tasks;
+
+   function Has_Error (J : Job) return Boolean is
+      pragma Unreferenced (J);
+   begin
+      return False; -- until we figure out what state is equivalent to sge's error state
+   end Has_Error;
+
    procedure Init (J : out Job; Ptr : job_info_ptr) is
    begin
+      J.Gres := To_Unbounded_String (To_String (Ptr.all.gres));
       J.ID := Integer (Ptr.all.job_id);
       J.Name := To_Unbounded_String (To_String (Ptr.all.name));
       J.Owner := To_User_Name (To_String (Ptr.all.user_name));
+      J.Priority := Natural (Ptr.all.priority);
       J.Project := To_Unbounded_String (To_String (Ptr.all.wckey));
+      J.Start_Time := Ada.Calendar.Conversions.To_Ada_Time (Interfaces.C.long (Ptr.all.start_time));
+      J.State := Enum_To_State (Ptr.all.job_state and JOB_STATE_BASE);
+      J.Submission_Time := Ada.Calendar.Conversions.To_Ada_Time (Interfaces.C.long (Ptr.all.submit_time));
+      J.Tasks := Integer (Ptr.all.num_tasks);
    end Init;
 
    overriding function Has_Element (Position : Cursor) return Boolean is
