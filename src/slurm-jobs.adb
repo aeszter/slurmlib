@@ -309,6 +309,11 @@ package body Slurm.Jobs is
       return J.Tasks;
    end Get_Tasks;
 
+   overriding function Has_Element (Position : Cursor) return Boolean is
+   begin
+      return Lists.Has_Element (Lists.Cursor (Position));
+   end Has_Element;
+
    function Has_Error (J : Job) return Boolean is
       pragma Unreferenced (J);
    begin
@@ -343,10 +348,10 @@ package body Slurm.Jobs is
       J.Tasks := Integer (Ptr.all.num_tasks);
    end Init;
 
-   overriding function Has_Element (Position : Cursor) return Boolean is
+   function Is_Running (J : Job) return Boolean is
    begin
-      return Lists.Has_Element (Lists.Cursor (Position));
-   end Has_Element;
+      return J.State = JOB_RUNNING;
+   end Is_Running;
 
    procedure Iterate (Collection : List;
                       Process    : not null access procedure (Position : Cursor)) is
@@ -357,5 +362,15 @@ package body Slurm.Jobs is
    begin
       Collection.Container.Iterate (Wrapper'Access);
    end Iterate;
+
+   function Walltime (J : Job) return Duration is
+      use Ada.Calendar;
+   begin
+      if Is_Running (J) then
+         return Ada.Calendar.Clock - J.Start_Time;
+      else
+         return Duration (0);
+      end if;
+   end Walltime;
 
 end Slurm.Jobs;

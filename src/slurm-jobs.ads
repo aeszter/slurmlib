@@ -48,10 +48,12 @@ package Slurm.Jobs is
    function Get_Priority (J : Job) return Natural;
    function Get_Project (J : Job) return String;
    function Get_Start_Time (J : Job) return Ada.Calendar.Time;
+   function Walltime (J : Job) return Duration;
    function Get_State (J : Job) return String;
    function Get_Submission_Time (J : Job) return Ada.Calendar.Time;
    function Get_Tasks (J : Job) return Positive;
    function Has_Error (J : Job) return Boolean;
+   function Is_Running (J : Job) return Boolean;
 
    function Load_Jobs return List;
 
