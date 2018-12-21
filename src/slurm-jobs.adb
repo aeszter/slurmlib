@@ -5,8 +5,6 @@ with POSIX;
 with POSIX.C; use POSIX.C;
 with Slurm.C_Types; use Slurm.C_Types;
 with Slurm.Errors;
-with Ada.Text_IO;
-
 
 package body Slurm.Jobs is
    type job_resources_t is null record;
@@ -69,33 +67,33 @@ package body Slurm.Jobs is
       group_id                  : uint32_t;        -- group job submitted as
       job_id                     : uint32_t;        -- job ID
       job_resrcs             : access job_resources_t;       -- opaque data type, job resources
-      job_state                : uint32_t;       -- state of the job, see enum job_states
-      last_sched_eval        : time_t;                       -- last time job was evaluated for scheduling
-      licenses               : chars_ptr;              -- licenses required by the job
+      job_state              : uint32_t;   -- state of the job, see enum job_states
+      last_sched_eval        : time_t;     -- last time job was evaluated for scheduling
+      licenses               : chars_ptr;  -- licenses required by the job
       max_cpus               : uint32_t; -- maximum number of cpus usable by job
       max_nodes              : uint32_t; -- maximum number of nodes usable by job
-      mcs_label              : chars_ptr;      -- mcs_label if mcs plugin in use
-      name                   : chars_ptr;              -- name of the job
-      network                : chars_ptr;              -- network specification
-      nodes                  : chars_ptr;             -- list of nodes allocated to job
-      nice                   : uint32_t;                -- requested priority change
+      mcs_label              : chars_ptr; -- mcs_label if mcs plugin in use
+      name                   : chars_ptr; -- name of the job
+      network                : chars_ptr; -- network specification
+      nodes                  : chars_ptr; -- list of nodes allocated to job
+      nice                   : uint32_t;  -- requested priority change
       node_inx               : access uint32_t; -- list index pairs into node_table for *nodes:
       --  start_range_1, end_range_1,
       --  start_range_2, .., -1
       ntasks_per_core        : uint16_t; -- number of tasks to invoke on each core
       ntasks_per_node        : uint16_t; -- number of tasks to invoke on each node
       ntasks_per_socket      : uint16_t; -- number of tasks to invoke on each socket
-      ntasks_per_board       : uint16_t;                     -- number of tasks to invoke on each board
-      num_cpus               : uint32_t;        -- minimum number of cpus required by job
-      num_nodes              : uint32_t;        -- minimum number of nodes required by job
-      num_tasks              : uint32_t;        -- requested task count
-      pack_job_id            : uint32_t;        -- lead job ID of pack job leader
-      pack_job_id_set        : chars_ptr;     -- job IDs for all components
-      pack_job_offset        : uint32_t;                     -- pack job index
-      partition              : chars_ptr;     -- name of assigned partition
-      pn_min_memory          : uint64_t;                     -- minimum real memory per node, default=0
-      pn_min_cpus            : uint16_t;                     -- minimum # CPUs per node, default=0
-      pn_min_tmp_disk        : uint32_t;                     -- minimum tmp disk per node, default=0
+      ntasks_per_board       : uint16_t; -- number of tasks to invoke on each board
+      num_cpus               : uint32_t; -- minimum number of cpus required by job
+      num_nodes              : uint32_t; -- minimum number of nodes required by job
+      num_tasks              : uint32_t; -- requested task count
+      pack_job_id            : uint32_t; -- lead job ID of pack job leader
+      pack_job_id_set        : chars_ptr; -- job IDs for all components
+      pack_job_offset        : uint32_t;  -- pack job index
+      partition              : chars_ptr; -- name of assigned partition
+      pn_min_memory          : uint64_t;  -- minimum real memory per node, default=0
+      pn_min_cpus            : uint16_t;  -- minimum # CPUs per node, default=0
+      pn_min_tmp_disk        : uint32_t;  -- minimum tmp disk per node, default=0
       power_flags            : uint8_t; -- power management flags,
       --  see SLURM_POWER_FLAGS_
       preempt_time           : time_t;  -- preemption signal time
@@ -144,9 +142,9 @@ package body Slurm.Jobs is
       user_name              : chars_ptr;     -- user_name or null. not always set, but
       --  accurate if set (and can avoid a local
       --  lookup call)
-      wait4switch            : uint32_t;                     -- Maximum time to wait for minimum switches
-      wckey                  : chars_ptr;                  -- wckey for job
-      work_dir               : chars_ptr;              -- pathname of working directory
+      wait4switch            : uint32_t;      -- Maximum time to wait for minimum switches
+      wckey                  : chars_ptr;     -- wckey for job
+      work_dir               : chars_ptr;     -- pathname of working directory
    end record;
 
    Default_Terminator : job_info;
@@ -175,10 +173,10 @@ package body Slurm.Jobs is
    function slurm_load_jobs (update_time       : time_t;
                              job_info_msg_pptr : job_info_msg_ptr_ptr;
                              show_flags        : uint16_t) return int;
-   pragma import (C, slurm_load_jobs, "slurm_load_jobs");
+   pragma Import (C, slurm_load_jobs, "slurm_load_jobs");
 
    procedure slurm_free_job_info_msg (job_info_msg_p : job_info_msg_ptr);
-   pragma import (C, slurm_free_job_info_msg, "slurm_free_job_info_msg");
+   pragma Import (C, slurm_free_job_info_msg, "slurm_free_job_info_msg");
 
    type Enum_To_State_Map is array (uint32_t range 0 .. 11) of states;
    Enum_To_State : constant Enum_To_State_Map :=
@@ -261,6 +259,11 @@ package body Slurm.Jobs is
       return Lists.Element (Lists.Cursor (Position));
    end Element;
 
+   function Get_Gres (J : Job) return String is
+   begin
+      return To_String (J.Gres);
+   end Get_Gres;
+
    function Get_ID (J : Job) return Positive is
    begin
       return J.ID;
@@ -276,20 +279,15 @@ package body Slurm.Jobs is
       return J.Owner;
    end Get_Owner;
 
-   function Get_Project (J : Job) return String is
-   begin
-      return To_String (J.Project);
-   end Get_Project;
-
-   function Get_Gres (J : Job) return String is
-   begin
-      return To_String (J.Gres);
-   end Get_Gres;
-
    function Get_Priority (J : Job) return Natural is
    begin
       return J.Priority;
    end Get_Priority;
+
+   function Get_Project (J : Job) return String is
+   begin
+      return To_String (J.Project);
+   end Get_Project;
 
    function Get_Start_Time (J : Job) return Ada.Calendar.Time is
    begin

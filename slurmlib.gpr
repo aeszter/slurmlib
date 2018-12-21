@@ -21,7 +21,8 @@ project Slurmlib is
 
    package Compiler is
 
-      for Default_Switches ("ada") use ("-gnaty3bBcxtSOnaihelkr", "-gnato", "-fstack-check", "-g", "-gnatf", "-gnatwum", "-gnat12");
+      for Default_Switches ("ada") use
+        ("-gnatyylbyaAbBCehiklM100noOpsStux3", "-gnato", "-fstack-check", "-g", "-gnatf", "-gnatwum", "-gnat12");
 
    end Compiler;
 
