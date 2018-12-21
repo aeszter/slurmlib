@@ -32,8 +32,6 @@ package Slurm.Jobs is
         JOB_DEADLINE,
         JOB_OOM);
 
-
-
    type Job is private;
    type List is private;
    type Cursor is private;
@@ -56,6 +54,7 @@ package Slurm.Jobs is
    function Is_Running (J : Job) return Boolean;
 
    function Load_Jobs return List;
+   function Load_User (User : String) return List;
 
 private
 
@@ -77,6 +76,5 @@ private
    type List is record
       Container : Lists.List;
    end record;
-
 
 end Slurm.Jobs;

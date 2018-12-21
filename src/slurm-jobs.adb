@@ -160,7 +160,6 @@ package body Slurm.Jobs is
                                                       Default_Terminator => Default_Terminator);
    subtype job_info_ptr is job_info_ptrs.Pointer;
 
-
    type job_info_msg_t is record
       last_update  : time_t;     -- time of latest info
       record_count : uint32_t;   -- number of records
@@ -174,6 +173,11 @@ package body Slurm.Jobs is
                              job_info_msg_pptr : job_info_msg_ptr_ptr;
                              show_flags        : uint16_t) return int;
    pragma Import (C, slurm_load_jobs, "slurm_load_jobs");
+
+   function slurm_load_job_user (job_info_msg_pptr : job_info_msg_ptr_ptr;
+                                           user_id : uint32_t;
+                                 show_flags        : uint16_t) return int;
+   pragma Import (C, slurm_load_job_user, "slurm_load_job_user");
 
    procedure slurm_free_job_info_msg (job_info_msg_p : job_info_msg_ptr);
    pragma Import (C, slurm_free_job_info_msg, "slurm_free_job_info_msg");
@@ -214,36 +218,21 @@ package body Slurm.Jobs is
    JOB_REQUEUE_FED    : constant uint32_t := 16#00100000#; --  Job is being requeued by federation
    JOB_RESV_DEL_HOLD : constant uint32_t := 16#00200000#; --  Job is hold
 
+   function getpwnam (c_name : chars_ptr) return passwd_ptr;
+   pragma Import (C, getpwnam, "getpwnam");
+
    function getpwuid (c_uid : uid_t) return passwd_ptr;
    pragma Import (C, getpwuid, "getpwuid");
 
-
    procedure Init (J : out Job; Ptr : job_info_ptr);
+   function Build_List (Buffer : aliased job_info_msg_ptr) return List;
 
-
-   function Load_Jobs return List is
-      use Slurm.Errors;
+   function Build_List (Buffer : aliased job_info_msg_ptr) return List is
       use job_info_ptrs;
-      E : Error;
-      Buffer : aliased job_info_msg_ptr;
       Job_Ptr : job_info_ptr;
       J       : Job;
       Result : List;
    begin
-      if slurm_load_jobs (update_time       => 0,
-                          job_info_msg_pptr => Buffer'Unchecked_Access,
-                          show_flags        => 0) /= 0
-      then
-         E := Get_Last_Error;
-         case E is
-            when Protocol_Version_Error =>
-               raise Internal_Error with "Incompatible protocol version";
-            when Socket_Timeout =>
-               raise Internal_Error with "Couldn't contact slurm controller";
-            when others =>
-               raise Constraint_Error with Get_Error (E);
-         end case;
-      end if;
       Job_Ptr := Buffer.job_array;
       for I in 1 .. Buffer.record_count loop
          Init (J, Job_Ptr);
@@ -252,7 +241,7 @@ package body Slurm.Jobs is
       end loop;
       slurm_free_job_info_msg (Buffer);
       return Result;
-   end Load_Jobs;
+   end Build_List;
 
    overriding function Element (Position : Cursor) return Job is
    begin
@@ -355,6 +344,8 @@ package body Slurm.Jobs is
 
    procedure Iterate (Collection : List;
                       Process    : not null access procedure (Position : Cursor)) is
+      procedure Wrapper (Position : Lists.Cursor);
+
       procedure Wrapper (Position : Lists.Cursor) is
       begin
          Process (Cursor (Position));
@@ -362,6 +353,59 @@ package body Slurm.Jobs is
    begin
       Collection.Container.Iterate (Wrapper'Access);
    end Iterate;
+
+   function Load_Jobs return List is
+      use Slurm.Errors;
+      use job_info_ptrs;
+      E : Error;
+      Buffer : aliased job_info_msg_ptr;
+   begin
+      if slurm_load_jobs (update_time       => 0,
+                          job_info_msg_pptr => Buffer'Unchecked_Access,
+                          show_flags        => 0) /= 0
+      then
+         E := Get_Last_Error;
+         case E is
+            when Protocol_Version_Error =>
+               raise Internal_Error with "Incompatible protocol version";
+            when Socket_Timeout =>
+               raise Internal_Error with "Couldn't contact slurm controller";
+            when others =>
+               raise Constraint_Error with Get_Error (E);
+         end case;
+      end if;
+      return Build_List (Buffer);
+   end Load_Jobs;
+
+   function Load_User (User : String) return List is
+      use Slurm.Errors;
+      use job_info_ptrs;
+      uid : uid_t;
+      pw_entry : passwd_ptr := getpwnam (New_String (User));
+      E : Error;
+      Buffer : aliased job_info_msg_ptr;
+   begin
+      if pw_entry = null
+      then
+         raise Constraint_Error;
+      end if;
+      uid := pw_entry.all.pw_uid;
+      if slurm_load_job_user (job_info_msg_pptr => Buffer'Unchecked_Access,
+                              user_id           => uint32_t (uid),
+                              show_flags        => 0) /= 0
+      then
+         E := Get_Last_Error;
+         case E is
+            when Protocol_Version_Error =>
+               raise Internal_Error with "Incompatible protocol version";
+            when Socket_Timeout =>
+               raise Internal_Error with "Couldn't contact slurm controller";
+            when others =>
+               raise Constraint_Error with Get_Error (E);
+         end case;
+      end if;
+      return Build_List (Buffer);
+   end Load_User;
 
    function Walltime (J : Job) return Duration is
       use Ada.Calendar;
