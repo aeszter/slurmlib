@@ -293,6 +293,21 @@ package body Slurm.Jobs is
       return J.Submission_Time;
    end Get_Submission_Time;
 
+   procedure Get_Summary (Collection : List;
+                          Jobs, Tasks : out State_Count) is
+      procedure Increment (Position : Cursor) is
+         J : Job := Element (Position);
+      begin
+         Jobs (J.State) :=  Jobs (J.State) + 1;
+         Tasks (J.State) := Tasks (J.State) + J.Tasks;
+      end Increment;
+
+   begin
+      Jobs := (others => 0);
+      Tasks := (others => 0);
+      Iterate (Collection, Increment'Access);
+   end Get_Summary;
+
    function Get_Tasks (J : Job) return Positive is
    begin
       return J.Tasks;

@@ -30,7 +30,8 @@ package Slurm.Jobs is
         JOB_PREEMPTED,
         JOB_BOOT_FAIL,
         JOB_DEADLINE,
-        JOB_OOM);
+                   JOB_OOM);
+   type State_Count is array (states) of Natural;
 
    type Job is private;
    type List is private;
@@ -55,6 +56,9 @@ package Slurm.Jobs is
 
    function Load_Jobs return List;
    function Load_User (User : String) return List;
+
+   procedure Get_Summary (Collection : List;
+                          Jobs, Tasks : out State_Count);
 
 private
 
