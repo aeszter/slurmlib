@@ -1,0 +1,49 @@
+with "florist";
+
+project Slurmlib is
+  type Style_Type is ("debug", "release");
+    Style : Style_Type := external ("BUILD", "debug");
+
+   for Main use ();
+   for Source_Dirs use ("src");
+   for Languages use ("Ada");
+
+   case Style is
+     when "debug" =>
+      for Object_Dir use "obj/debug";
+     when "release" =>
+       for Object_Dir use "obj/release";
+   end case;
+
+
+   package Ide is
+      for Vcs_Kind use "Git";
+   end Ide;
+
+   package Builder is
+     case Style is
+       when "debug" =>
+      for Default_Switches ("ada") use ("-j4", "-k", "-g", "-s");
+       when "release" =>
+      for Default_Switches ("ada") use ("-j4", "-k", "-s");
+     end case;
+   end Builder;
+
+   package Compiler is
+
+     case Style is
+       when "debug" =>
+      for Default_Switches ("ada") use
+        ("-gnatyylbyaAbBCehiklM100noOpsStux3", "-gnato", "-fstack-check", "-g", "-gnatf", "-gnatwum", "-gnat12");
+       when "release" =>
+      for Default_Switches ("ada") use
+        ("-gnatyylbyaAbBCehiklM100noOpsStux3", "-gnato",
+        "-fstack-check", "-O2", "-gnatf", "-gnatwum", "-gnat12");
+      end case;
+
+   end Compiler;
+
+   package Linker is
+      for Default_Switches ("Ada") use ("-lslurm");
+   end Linker;
+end Slurmlib;
