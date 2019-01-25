@@ -8,7 +8,7 @@ with Ada.Calendar;
 with Interfaces.C.Strings;
 
 package Slurm.Utils is
-   Version : String := "v0.01";
+   Version : String := "v0.1";
    type Tri_State is (False, True, Undecided);
    type User_Name is new String (1 .. 8);
 
