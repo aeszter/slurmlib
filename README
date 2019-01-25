@@ -1,0 +1,34 @@
+slurmlib
+========
+
+An Ada frontend to Slurm
+
+By Ansgar Esztermann <aeszter@mpibpc.mpg.de>
+
+1. Goal
+This library began its life as replacement for sgelib within qview 
+(by the same author).
+Whereas sgelib needed to call SGE binaries and extract information
+from XML code, Slurm has a ready API.
+This makes things easier and faster. 
+Both slurmlib and the Slurm edition of qview are work in progress, and
+they'll be quite incomplete for some time.
+
+2. Requirements
+The following libraries are needed:
+
+  * Florist (POSIX API)
+
+Of course, a working Slurm installation including the API library
+(libslurm.so on Linux) is also necessary.
+
+3. Shortcomings/Bugs
+For an up-to-date list of bugs, see the issue tracker on GitHub.
+Here, let it just be noted that slurmlib does not necessarily strive 
+to provide the complete API -- its main goal is to provide the calls 
+qview requires.
+I'll be happy to take suggestions (or, better yet, pull requests) for
+missing functionality, though.
+
+For the time being, slurmlib evolves along with qview.
+This has been hinted at by keeping the major version at 0.
