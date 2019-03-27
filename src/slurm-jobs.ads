@@ -46,6 +46,7 @@ package Slurm.Jobs is
    function Get_Owner (J : Job) return User_Name;
    function Get_Priority (J : Job) return Natural;
    function Get_Project (J : Job) return String;
+   function Has_Start_Time (J : Job) return Boolean;
    function Get_Start_Time (J : Job) return Ada.Calendar.Time;
    function Walltime (J : Job) return Duration;
    function Get_State (J : Job) return String;
@@ -68,7 +69,8 @@ private
       Name    : Unbounded_String;
       Owner   : User_Name;
       Priority : Natural;
-      Project : Unbounded_String;
+      Project  : Unbounded_String;
+      Has_Start_Time : Boolean;
       Start_Time : Ada.Calendar.Time;
       State      : states;
       Submission_Time : Ada.Calendar.Time;

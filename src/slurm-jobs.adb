@@ -324,6 +324,11 @@ package body Slurm.Jobs is
       return False; -- until we figure out what state is equivalent to sge's error state
    end Has_Error;
 
+   function Has_Start_Time (J : Job) return Boolean is
+   begin
+      return J.Has_Start_Time;
+   end Has_Start_Time;
+
    procedure Init (J : out Job; Ptr : job_info_ptr) is
    begin
       J.Gres := To_Unbounded_String (To_String (Ptr.all.gres));
@@ -347,6 +352,11 @@ package body Slurm.Jobs is
       J.Priority := Natural (Ptr.all.priority);
       J.Project := To_Unbounded_String (To_String (Ptr.all.wckey));
       J.Start_Time := Ada.Calendar.Conversions.To_Ada_Time (Interfaces.C.long (Ptr.all.start_time));
+      if Ptr.all.start_time = 0 then
+         J.Has_Start_Time := False;
+      else
+         J.Has_Start_Time := True;
+      end if;
       J.State := Enum_To_State (Ptr.all.job_state and JOB_STATE_BASE);
       J.Submission_Time := Ada.Calendar.Conversions.To_Ada_Time (Interfaces.C.long (Ptr.all.submit_time));
       J.Tasks := Integer (Ptr.all.num_tasks);
