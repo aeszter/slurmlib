@@ -6,6 +6,7 @@ with Slurm.Jobs; use Slurm.Jobs;
 with Slurm.Node_Properties; use Slurm.Node_Properties;
 with Slurm.Partitions; use Slurm.Partitions;
 with Slurm.Utils; use Slurm.Utils;
+with Slurm.Gres;
 
 package Slurm.Nodes is
 
@@ -39,7 +40,6 @@ package Slurm.Nodes is
    function Color_Class (Load : Node_Properties.Load) return String;
 
    function Get_CPUs (N : Node) return Positive;
-   function Get_GRES (N : Node) return String;
    function Get_Memory (N : Node) return String;
    function Get_Name (N : Node) return String;
    function Get_State (N : Node) return states;
@@ -48,6 +48,12 @@ package Slurm.Nodes is
 
    procedure Iterate_Jobs (N : Node; Process : not null access procedure (J : Job));
    procedure Iterate_Partitions (N : Node; Process : not null access procedure (P : Partition));
+   procedure Iterate_GRES (N       : Node;
+                           Process : not null access procedure (R : Slurm.Gres.Resource));
+   procedure Iterate_GRES_Drain (N       : Node;
+                                 Process : not null access procedure (R : Slurm.Gres.Resource));
+   procedure Iterate_GRES_Used (N       : Node;
+                                Process : not null access procedure (R : Slurm.Gres.Resource));
 private
 
    type Node is record
@@ -63,9 +69,9 @@ private
       Free_Memory      : Gigs;
       Real_Memory      : Gigs;
       Features         : Unbounded_String;
-      GRES             : Unbounded_String;
-      GRES_Drain       : Unbounded_String;
-      GRES_Used        : Unbounded_String;
+      GRES,
+      GRES_Drain,
+      GRES_Used        : Slurm.Gres.List;
       Name             : Unbounded_String;
       State            : Slurm.C_Types.uint32_t;
       OS               : Unbounded_String;

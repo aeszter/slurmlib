@@ -185,11 +185,6 @@ package body Slurm.Nodes is
       return N.CPUs;
    end Get_CPUs;
 
-   function Get_GRES (N : Node) return String is
-   begin
-      return To_String (N.GRES);
-   end Get_GRES;
-
    function Get_Memory (N : Node) return String is
    begin
       return To_String (N.Real_Memory);
@@ -225,9 +220,9 @@ package body Slurm.Nodes is
       end;
       N.CPUs := Natural (Ptr.all.cpus);
       N.Features := Convert_String (Ptr.all.features);
-      N.GRES := Convert_String (Ptr.all.gres);
-      N.GRES_Drain := Convert_String (Ptr.all.gres_drain);
-      N.GRES_Used := Convert_String (Ptr.all.gres_used);
+      N.GRES := Gres.Init (To_String (Ptr.all.gres));
+      N.GRES_Drain := Gres.Init (To_String (Ptr.all.gres_drain));
+      N.GRES_Used := Gres.Init (To_String (Ptr.all.gres_used));
       N.Name := Convert_String (Ptr.all.name);
       N.State := Ptr.all.node_state;
       N.OS := Convert_String (Ptr.all.os);
@@ -267,6 +262,45 @@ package body Slurm.Nodes is
    begin
       Collection.Container.Iterate (Wrapper'Access);
    end Iterate;
+
+   procedure Iterate_GRES (N       : Node;
+                           Process : not null access procedure (R : Slurm.Gres.Resource)) is
+      procedure Wrapper (Position : Slurm.Gres.Lists.Cursor);
+
+      procedure Wrapper (Position : Slurm.Gres.Lists.Cursor) is
+      begin
+         Process (Slurm.Gres.Lists.Element (Position));
+      end Wrapper;
+
+   begin
+      N.GRES.Iterate (Wrapper'Access);
+   end Iterate_GRES;
+
+   procedure Iterate_GRES_Drain (N       : Node;
+                           Process : not null access procedure (R : Slurm.Gres.Resource)) is
+      procedure Wrapper (Position : Slurm.Gres.Lists.Cursor);
+
+      procedure Wrapper (Position : Slurm.Gres.Lists.Cursor) is
+      begin
+         Process (Slurm.Gres.Lists.Element (Position));
+      end Wrapper;
+
+   begin
+      N.GRES_Drain.Iterate (Wrapper'Access);
+   end Iterate_GRES_Drain;
+
+   procedure Iterate_GRES_Used (N       : Node;
+                           Process : not null access procedure (R : Slurm.Gres.Resource)) is
+      procedure Wrapper (Position : Slurm.Gres.Lists.Cursor);
+
+      procedure Wrapper (Position : Slurm.Gres.Lists.Cursor) is
+      begin
+         Process (Slurm.Gres.Lists.Element (Position));
+      end Wrapper;
+
+   begin
+      N.GRES_Used.Iterate (Wrapper'Access);
+   end Iterate_GRES_Used;
 
    procedure Iterate_Jobs (N : Node; Process : not null access procedure (J : Job)) is
    begin
