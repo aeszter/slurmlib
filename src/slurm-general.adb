@@ -4,7 +4,7 @@ with POSIX.C; use POSIX.C;
 package body Slurm.General is
 
    function slurm_api_version return long;
-pragma import (C, slurm_api_version, "slurm_api_version");
+   pragma Import (C, slurm_api_version, "slurm_api_version");
 
    function  API_Version return Natural is
    begin
