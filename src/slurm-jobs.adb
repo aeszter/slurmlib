@@ -401,7 +401,7 @@ package body Slurm.Jobs is
 197 => WAIT_RESV_DELETED
 
                          );
-
+   pragma Warnings (off, "constant*is not referenced");
    JOB_STATE_BASE : constant uint32_t := 16#ff#;
    JOB_LAUNCH_FAILED : constant uint32_t := 16#00000100#;
    JOB_UPDATE_DB     : constant uint32_t := 16#00000200#; --  Send job start to database again
@@ -422,12 +422,10 @@ package body Slurm.Jobs is
    JOB_REVOKED        : constant uint32_t := 16#00080000#; --  Sibling job revoked
    JOB_REQUEUE_FED    : constant uint32_t := 16#00100000#; --  Job is being requeued by federation
    JOB_RESV_DEL_HOLD : constant uint32_t := 16#00200000#; --  Job is hold
+   pragma Warnings (on, "constant*is not referenced");
 
    function getpwnam (c_name : chars_ptr) return passwd_ptr;
    pragma Import (C, getpwnam, "getpwnam");
-
-   function getpwuid (c_uid : uid_t) return passwd_ptr;
-   pragma Import (C, getpwuid, "getpwuid");
 
    function getgrgid (c_gid : gid_t) return group_ptr;
    pragma Import (C, getgrgid, "getgrgid");
@@ -603,18 +601,15 @@ package body Slurm.Jobs is
       J.Name := To_Unbounded_String (To_String (Ptr.all.name));
       declare
          Given_Name : String := To_String (Ptr.all.user_name);
-         pw_entry : passwd_ptr;
       begin
          if Given_Name /= "" then
             J.Owner := To_User_Name (Given_Name);
          else
-            pw_entry := getpwuid (uid_t (Ptr.all.user_id));
-            if pw_entry = null
-            then
-               raise Constraint_Error;
-            end if;
-            J.Owner := To_User_Name (POSIX.To_String (Form_POSIX_String (pw_entry.all.pw_name)));
+            J.Owner := Convert_User (Ptr.all.user_id);
          end if;
+      exception
+            when Constraint_Error =>
+            J.Owner := To_User_Name ("unknown");
       end;
       J.Priority := Natural (Ptr.all.priority);
       J.Project := To_Unbounded_String (To_String (Ptr.all.wckey));
@@ -625,8 +620,7 @@ package body Slurm.Jobs is
          J.Has_Start_Time := True;
       end if;
       J.State := Enum_To_State (Ptr.all.job_state and JOB_STATE_BASE);
-      J.Submission_Time := Ada.Calendar.Conversions.To_Ada_Time
-        (Interfaces.C.long (Ptr.all.submit_time));
+      J.Submission_Time := Convert_Time (Ptr.all.submit_time);
       J.Tasks := Integer (Ptr.all.num_tasks);
       J.CPUs := Integer (Ptr.all.num_cpus);
       J.Dependency := To_Unbounded_String (To_String (Ptr.all.dependency));
