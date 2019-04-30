@@ -303,6 +303,7 @@ package Slurm.Jobs is
    function Element (Position : Cursor) return Job;
    function Has_Element (Position : Cursor) return Boolean;
    function First (Collection : List) return Cursor;
+   procedure Append (Collection : in out List; Item : Job);
 
    procedure Iterate (Collection : List;
                       Process    : not null access procedure (Position : Cursor));
@@ -335,6 +336,10 @@ package Slurm.Jobs is
    function Is_Pending (J : Job) return Boolean;
    function Is_Running (J : Job) return Boolean;
    function Has_Share (J : Job) return Boolean;
+
+   function Extract (Source   : List;
+                     Selector : not null access function (J : Job) return Boolean)
+                     return List;
 
    function Load_Jobs return List;
    function Load_User (User : String) return List;

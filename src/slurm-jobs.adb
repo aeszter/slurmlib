@@ -433,6 +433,11 @@ package body Slurm.Jobs is
    procedure Init (J : out Job; Ptr : job_info_ptr);
    function Build_List (Buffer : aliased job_info_msg_ptr) return List;
 
+   procedure Append (Collection : in out List; Item : Job) is
+   begin
+      Collection.Container.Append (Item);
+   end Append;
+
    function Build_List (Buffer : aliased job_info_msg_ptr) return List is
       use job_info_ptrs;
       Job_Ptr : job_info_ptr;
@@ -453,6 +458,25 @@ package body Slurm.Jobs is
    begin
       return Lists.Element (Lists.Cursor (Position));
    end Element;
+
+   function Extract (Source   : List;
+                     Selector : not null access function (J : Job) return Boolean)
+                     return List is
+      procedure Conditional_Copy (Position : Cursor);
+      Result : List;
+
+      procedure Conditional_Copy (Position : Cursor) is
+         J : Job := Element (Position);
+      begin
+         if Selector (J) then
+            Append (Result, J);
+         end if;
+      end Conditional_Copy;
+
+   begin
+      Iterate (Source, Conditional_Copy'Access);
+      return Result;
+   end Extract;
 
    function First (Collection : List) return Cursor is
    begin
