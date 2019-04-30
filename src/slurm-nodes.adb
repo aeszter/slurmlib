@@ -200,6 +200,11 @@ package body Slurm.Nodes is
       return Enum_To_State (N.State and 16#f#);
    end Get_State;
 
+   function Get_State (N : Node) return String is
+   begin
+      return states'(Get_State (N))'Img;
+   end Get_State;
+
    overriding function Has_Element (Position : Cursor) return Boolean is
    begin
       return Lists.Has_Element (Lists.Cursor (Position));

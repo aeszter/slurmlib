@@ -43,6 +43,7 @@ package Slurm.Nodes is
    function Get_Memory (N : Node) return String;
    function Get_Name (N : Node) return String;
    function Get_State (N : Node) return states;
+   function Get_State (N : Node) return String;
    function Load_Per_Core (N : Node) return Load;
    function Mem_Percentage (N : Node) return Percent;
 
