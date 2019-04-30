@@ -306,6 +306,7 @@ package Slurm.Jobs is
 
    procedure Iterate (Collection : List;
                       Process    : not null access procedure (Position : Cursor));
+   function Get_Alloc_Node (J : Job) return String;
    function Get_CPUs (J : Job) return Natural;
    function Get_Dependency (J : Job) return String;
    function Get_Gres (J : Job) return String;
@@ -321,14 +322,19 @@ package Slurm.Jobs is
    function Get_Reservation (J : Job) return String;
    function Has_Start_Time (J : Job) return Boolean;
    function Get_Start_Time (J : Job) return Ada.Calendar.Time;
+   function Get_End_Time (J : Job) return Ada.Calendar.Time;
+
    function Walltime (J : Job) return Duration;
    function Get_State (J : Job) return String;
+   function Get_State (J : Job) return states;
    function Get_State_Description (J : Job) return String;
    function Get_State_Reason (J : Job) return state_reasons;
    function Get_Submission_Time (J : Job) return Ada.Calendar.Time;
    function Get_Tasks (J : Job) return Positive;
    function Has_Error (J : Job) return Boolean;
+   function Is_Pending (J : Job) return Boolean;
    function Is_Running (J : Job) return Boolean;
+   function Has_Share (J : Job) return Boolean;
 
    function Load_Jobs return List;
    function Load_User (User : String) return List;
@@ -340,6 +346,7 @@ package Slurm.Jobs is
 private
 
    type Job is record
+      Alloc_Node  : Unbounded_String;
       Gres        : Unbounded_String;
       ID          : Positive;
       Name        : Unbounded_String;
@@ -349,6 +356,9 @@ private
       Project     : Unbounded_String;
       Has_Start_Time : Boolean;
       Start_Time : Ada.Calendar.Time;
+      Has_End_Time : Boolean;
+      End_Time       : Ada.Calendar.Time;
+      Shared         : Boolean;
       State          : states;
       State_Desc     : Unbounded_String;
       State_Reason   : state_reasons;

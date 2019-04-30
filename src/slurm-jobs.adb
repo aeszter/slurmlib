@@ -459,6 +459,11 @@ package body Slurm.Jobs is
       return Cursor (Collection.Container.First);
    end First;
 
+   function Get_Alloc_Node (J : Job) return String is
+   begin
+      return To_String (J.Alloc_Node);
+   end Get_Alloc_Node;
+
    function Get_CPUs (J : Job) return Natural is
    begin
       return J.CPUs;
@@ -468,6 +473,11 @@ package body Slurm.Jobs is
    begin
       return To_String (J.Dependency);
    end Get_Dependency;
+
+   function Get_End_Time (J : Job) return Ada.Calendar.Time is
+   begin
+      return J.End_Time;
+   end Get_End_Time;
 
    function Get_Gres (J : Job) return String is
    begin
@@ -538,6 +548,11 @@ package body Slurm.Jobs is
       return J.Start_Time;
    end Get_Start_Time;
 
+   function Get_State (J : Job) return states is
+   begin
+      return J.State;
+   end Get_State;
+
    function Get_State (J : Job) return String is
    begin
       return J.State'Img;
@@ -589,6 +604,11 @@ package body Slurm.Jobs is
       return False; -- until we figure out what state is equivalent to sge's error state
    end Has_Error;
 
+   function Has_Share (J : Job) return Boolean is
+   begin
+      return J.Shared;
+   end Has_Share;
+
    function Has_Start_Time (J : Job) return Boolean is
    begin
       return J.Has_Start_Time;
@@ -596,6 +616,7 @@ package body Slurm.Jobs is
 
    procedure Init (J : out Job; Ptr : job_info_ptr) is
    begin
+      J.Alloc_Node := To_Unbounded_String (To_String (Ptr.all.alloc_node));
       J.Gres := To_Unbounded_String (To_String (Ptr.all.gres));
       J.ID := Integer (Ptr.all.job_id);
       J.Name := To_Unbounded_String (To_String (Ptr.all.name));
@@ -613,11 +634,22 @@ package body Slurm.Jobs is
       end;
       J.Priority := Natural (Ptr.all.priority);
       J.Project := To_Unbounded_String (To_String (Ptr.all.wckey));
+      if Ptr.all.shared = 0 then
+         J.Shared := False;
+      else
+         J.Shared := True;
+      end if;
       J.Start_Time := Ada.Calendar.Conversions.To_Ada_Time (Interfaces.C.long (Ptr.all.start_time));
       if Ptr.all.start_time = 0 then
          J.Has_Start_Time := False;
       else
          J.Has_Start_Time := True;
+      end if;
+      J.End_Time := Ada.Calendar.Conversions.To_Ada_Time (Interfaces.C.long (Ptr.all.end_time));
+      if Ptr.all.end_time = 0 then
+         J.Has_End_Time := False;
+      else
+         J.Has_End_Time := True;
       end if;
       J.State := Enum_To_State (Ptr.all.job_state and JOB_STATE_BASE);
       J.Submission_Time := Convert_Time (Ptr.all.submit_time);
@@ -640,6 +672,11 @@ package body Slurm.Jobs is
       J.State_Desc := To_Unbounded_String (To_String (Ptr.all.state_desc));
       J.State_Reason := Enum_To_Reason (Ptr.all.state_reason);
    end Init;
+
+   function Is_Pending (J : Job) return Boolean is
+   begin
+      return J.State = JOB_PENDING;
+   end Is_Pending;
 
    function Is_Running (J : Job) return Boolean is
    begin
