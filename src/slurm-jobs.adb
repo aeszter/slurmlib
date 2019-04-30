@@ -413,12 +413,12 @@ package body Slurm.Jobs is
                                 --      immediately before job changes size
    JOB_CONFIGURING   : constant uint32_t := 16#00004000#; --  Allocated nodes booting
    JOB_COMPLETING    : constant uint32_t := 16#00008000#; --  Waiting for epilog completion
-   JOB_STOPPED       : constant uint32_t := 16#00010000#; --  Job is stopped state (holding resources,
-                                                          --                      but sent SIGSTOP
+   JOB_STOPPED       : constant uint32_t := 16#00010000#; --  Job is stopped state (holding
+                                                         -- resources, but sent SIGSTOP
    JOB_RECONFIG_FAIL : constant uint32_t := 16#00020000#; --  Node configuration for job failed,
 --                                      not job state, just job requeue flag
    JOB_POWER_UP_NODE  : constant uint32_t := 16#00040000#; --  Allocated powered down nodes,
-                                                           -- waiting for reboot
+                                                            -- waiting for reboot
    JOB_REVOKED        : constant uint32_t := 16#00080000#; --  Sibling job revoked
    JOB_REQUEUE_FED    : constant uint32_t := 16#00100000#; --  Job is being requeued by federation
    JOB_RESV_DEL_HOLD : constant uint32_t := 16#00200000#; --  Job is hold

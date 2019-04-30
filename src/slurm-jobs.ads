@@ -70,14 +70,14 @@ package Slurm.Jobs is
         WAIT_BLOCK_MAX_ERR,     -- BLUEGENE Block has too many cnodes
                                  -- in error state to allow more jobs. */
         WAIT_BLOCK_D_ACTION,    -- BLUEGENE Block is being freed,
-                          -- can't allow more jobs. */
+                           -- can't allow more jobs. */
         WAIT_CLEANING,          -- If a job is requeued and it is
                                  -- still cleaning up from the last run. */
         WAIT_PROLOG,            -- Prolog is running */
         WAIT_QOS,               -- QOS not allowed */
         WAIT_ACCOUNT,           -- Account not allowed */
         WAIT_DEP_INVALID,        -- Dependency condition invalid or never
-                          -- satisfied
+                           -- satisfied
 
         WAIT_QOS_GRP_CPU,            -- QOS GrpTRES exceeded (CPU) */
         WAIT_QOS_GRP_CPU_MIN,        -- QOS GrpTRESMins exceeded (CPU) */
@@ -107,10 +107,10 @@ package Slurm.Jobs is
         WAIT_ASSOC_MAX_JOBS,         -- ASSOC MaxJobs exceeded */
         WAIT_ASSOC_MAX_CPU_PER_JOB,  -- ASSOC MaxTRESPerJob exceeded (CPU) */
          WAIT_ASSOC_MAX_CPU_MINS_PER_JOB, -- ASSOC MaxTRESMinsPerJob
-                          -- exceeded (CPU) */
+                           -- exceeded (CPU) */
         WAIT_ASSOC_MAX_NODE_PER_JOB, -- ASSOC MaxTRESPerJob exceeded (NODE) */
         WAIT_ASSOC_MAX_WALL_PER_JOB, -- ASSOC MaxWallDurationPerJob
-                          -- exceeded */
+                           -- exceeded */
         WAIT_ASSOC_MAX_SUB_JOB,      -- ASSOC MaxSubmitJobsPerUser exceeded */
 
         WAIT_MAX_REQUEUE,            -- MAX_BATCH_REQUEUE reached */
@@ -120,28 +120,28 @@ package Slurm.Jobs is
         FAIL_BURST_BUFFER_OP,        -- Burst buffer operation failure */
         WAIT_POWER_NOT_AVAIL,        -- not enough power available */
         WAIT_POWER_RESERVED,         -- job is waiting for available power
-                          -- because of power reservations */
+                           -- because of power reservations */
         WAIT_ASSOC_GRP_UNK,          -- ASSOC GrpTRES exceeded
-                          -- (Unknown) */
+                           -- (Unknown) */
         WAIT_ASSOC_GRP_UNK_MIN,      -- ASSOC GrpTRESMins exceeded
-                          -- (Unknown) */
+                           -- (Unknown) */
         WAIT_ASSOC_GRP_UNK_RUN_MIN,  -- ASSOC GrpTRESRunMins exceeded
-                          -- (Unknown) */
+                           -- (Unknown) */
         WAIT_ASSOC_MAX_UNK_PER_JOB,  -- ASSOC MaxTRESPerJob exceeded
-                          -- (Unknown) */
+                           -- (Unknown) */
         WAIT_ASSOC_MAX_UNK_PER_NODE,  -- ASSOC MaxTRESPerNode exceeded
                                        -- (Unknown) */
          WAIT_ASSOC_MAX_UNK_MINS_PER_JOB, -- ASSOC MaxTRESMinsPerJob
-                          -- exceeded (Unknown) */
+                           -- exceeded (Unknown) */
         WAIT_ASSOC_MAX_CPU_PER_NODE,  -- ASSOC MaxTRESPerNode exceeded (CPU) */
         WAIT_ASSOC_GRP_MEM_MIN,      -- ASSOC GrpTRESMins exceeded
-                          -- (Memory) */
+                           -- (Memory) */
         WAIT_ASSOC_GRP_MEM_RUN_MIN,  -- ASSOC GrpTRESRunMins exceeded
-                          -- (Memory) */
+                           -- (Memory) */
         WAIT_ASSOC_MAX_MEM_PER_JOB,  -- ASSOC MaxTRESPerJob exceeded (Memory) */
         WAIT_ASSOC_MAX_MEM_PER_NODE,  -- ASSOC MaxTRESPerNode exceeded (CPU) */
          WAIT_ASSOC_MAX_MEM_MINS_PER_JOB, -- ASSOC MaxTRESMinsPerJob
-                          -- exceeded (Memory) */
+                           -- exceeded (Memory) */
         WAIT_ASSOC_GRP_NODE_MIN,     -- ASSOC GrpTRESMins exceeded (Node) */
         WAIT_ASSOC_GRP_NODE_RUN_MIN, -- ASSOC GrpTRESRunMins exceeded (Node) */
          WAIT_ASSOC_MAX_NODE_MINS_PER_JOB, -- ASSOC MaxTRESMinsPerJob
@@ -157,7 +157,7 @@ package Slurm.Jobs is
         WAIT_ASSOC_MAX_ENERGY_PER_NODE,  -- ASSOC MaxTRESPerNode
                                           -- exceeded (Energy) */
          WAIT_ASSOC_MAX_ENERGY_MINS_PER_JOB, -- ASSOC MaxTRESMinsPerJob
-                          -- exceeded (Energy) */
+                           -- exceeded (Energy) */
         WAIT_ASSOC_GRP_GRES,          -- ASSOC GrpTRES exceeded (GRES) */
         WAIT_ASSOC_GRP_GRES_MIN,      -- ASSOC GrpTRESMins exceeded (GRES) */
         WAIT_ASSOC_GRP_GRES_RUN_MIN,  -- ASSOC GrpTRESRunMins exceeded (GRES) */
@@ -166,27 +166,27 @@ package Slurm.Jobs is
          WAIT_ASSOC_MAX_GRES_MINS_PER_JOB, -- ASSOC MaxTRESMinsPerJob
                                           -- exceeded (GRES) */
         WAIT_ASSOC_GRP_LIC,          -- ASSOC GrpTRES exceeded
-                          -- (license) */
+                           -- (license) */
         WAIT_ASSOC_GRP_LIC_MIN,      -- ASSOC GrpTRESMins exceeded
-                          -- (license) */
+                           -- (license) */
         WAIT_ASSOC_GRP_LIC_RUN_MIN,  -- ASSOC GrpTRESRunMins exceeded
-                          -- (license) */
+                           -- (license) */
         WAIT_ASSOC_MAX_LIC_PER_JOB,  -- ASSOC MaxTRESPerJob exceeded
-                          -- (license) */
+                           -- (license) */
          WAIT_ASSOC_MAX_LIC_MINS_PER_JOB, -- ASSOC MaxTRESMinsPerJob exceeded
-                          -- (license) */
+                           -- (license) */
         WAIT_ASSOC_GRP_BB,          -- ASSOC GrpTRES exceeded
-                          -- (burst buffer) */
+                           -- (burst buffer) */
         WAIT_ASSOC_GRP_BB_MIN,      -- ASSOC GrpTRESMins exceeded
-                          -- (burst buffer) */
+                           -- (burst buffer) */
         WAIT_ASSOC_GRP_BB_RUN_MIN,  -- ASSOC GrpTRESRunMins exceeded
-                          -- (burst buffer) */
+                           -- (burst buffer) */
         WAIT_ASSOC_MAX_BB_PER_JOB,  -- ASSOC MaxTRESPerJob exceeded
-                          -- (burst buffer) */
+                           -- (burst buffer) */
         WAIT_ASSOC_MAX_BB_PER_NODE, -- ASSOC MaxTRESPerNode exceeded
-                          -- (burst buffer) */
+                           -- (burst buffer) */
         WAIT_ASSOC_MAX_BB_MINS_PER_JOB, -- ASSOC MaxTRESMinsPerJob exceeded
-                          -- (burst buffer) */
+                           -- (burst buffer) */
         WAIT_QOS_GRP_UNK,           -- QOS GrpTRES exceeded (Unknown) */
         WAIT_QOS_GRP_UNK_MIN,       -- QOS GrpTRESMins exceeded (Unknown) */
         WAIT_QOS_GRP_UNK_RUN_MIN,   -- QOS GrpTRESRunMins exceeded (Unknown) */
@@ -198,9 +198,9 @@ package Slurm.Jobs is
         WAIT_QOS_MIN_UNK,           -- QOS MinTRESPerJob exceeded (Unknown) */
         WAIT_QOS_MAX_CPU_PER_NODE,  -- QOS MaxTRESPerNode exceeded (CPU) */
         WAIT_QOS_GRP_MEM_MIN,       -- QOS GrpTRESMins exceeded
-                          -- (Memory) */
+                           -- (Memory) */
         WAIT_QOS_GRP_MEM_RUN_MIN,   -- QOS GrpTRESRunMins exceeded
-                          -- (Memory) */
+                           -- (Memory) */
          WAIT_QOS_MAX_MEM_MINS_PER_JOB, -- QOS MaxTRESMinsPerJob
                                        -- exceeded (Memory) */
         WAIT_QOS_MAX_MEM_PER_JOB,   -- QOS MaxTRESPerJob exceeded (CPU) */
@@ -227,9 +227,9 @@ package Slurm.Jobs is
         WAIT_QOS_MAX_GRES_PER_JOB,  -- QOS MaxTRESPerJob exceeded (GRES) */
         WAIT_QOS_MAX_GRES_PER_NODE, -- QOS MaxTRESPerNode exceeded (GRES) */
         WAIT_QOS_MAX_GRES_PER_USER, -- QOS MaxTRESPerUser exceeded
-                          -- (GRES) */
+                           -- (GRES) */
          WAIT_QOS_MAX_GRES_MINS_PER_JOB, -- QOS MaxTRESMinsPerJob
-                          -- exceeded (GRES) */
+                           -- exceeded (GRES) */
         WAIT_QOS_MIN_GRES,          -- QOS MinTRESPerJob not reached (CPU) */
         WAIT_QOS_GRP_LIC,           -- QOS GrpTRES exceeded (license) */
         WAIT_QOS_GRP_LIC_MIN,       -- QOS GrpTRESMins exceeded (license) */
@@ -239,13 +239,13 @@ package Slurm.Jobs is
          WAIT_QOS_MAX_LIC_MINS_PER_JOB, -- QOS MaxTRESMinsPerJob exceeded
                                        -- (license) */
         WAIT_QOS_MIN_LIC,           -- QOS MinTRESPerJob not reached
-                          -- (license) */
+                           -- (license) */
         WAIT_QOS_GRP_BB,            -- QOS GrpTRES exceeded
-                          -- (burst buffer) */
+                           -- (burst buffer) */
         WAIT_QOS_GRP_BB_MIN,        -- QOS GrpTRESMins exceeded
-                          -- (burst buffer) */
+                           -- (burst buffer) */
         WAIT_QOS_GRP_BB_RUN_MIN,    -- QOS GrpTRESRunMins exceeded
-                          -- (burst buffer) */
+                           -- (burst buffer) */
         WAIT_QOS_MAX_BB_PER_JOB,   -- QOS MaxTRESPerJob exceeded
                                     -- (burst buffer) */
         WAIT_QOS_MAX_BB_PER_NODE,  -- QOS MaxTRESPerNode exceeded
@@ -253,7 +253,7 @@ package Slurm.Jobs is
         WAIT_QOS_MAX_BB_PER_USER,  -- QOS MaxTRESPerUser exceeded
                                     -- (burst buffer) */
          WAIT_QOS_MAX_BB_MINS_PER_JOB, -- QOS MaxTRESMinsPerJob exceeded
-                          -- (burst buffer) */
+                           -- (burst buffer) */
         WAIT_QOS_MIN_BB,           -- QOS MinTRESPerJob not reached
                                     -- (burst buffer) */
         FAIL_DEADLINE,              -- reached deadline */
@@ -340,13 +340,13 @@ package Slurm.Jobs is
 private
 
    type Job is record
-      Gres : Unbounded_String;
-      ID      : Positive;
-      Name    : Unbounded_String;
-      Owner   : User_Name;
-      Group   : User_Name;
-      Priority : Natural;
-      Project  : Unbounded_String;
+      Gres        : Unbounded_String;
+      ID          : Positive;
+      Name        : Unbounded_String;
+      Owner       : User_Name;
+      Group       : User_Name;
+      Priority    : Natural;
+      Project     : Unbounded_String;
       Has_Start_Time : Boolean;
       Start_Time : Ada.Calendar.Time;
       State          : states;

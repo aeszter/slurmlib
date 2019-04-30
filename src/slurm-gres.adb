@@ -24,7 +24,7 @@ package body Slurm.Gres is
       Second : Natural := Index (Source  => Source,
                                  Pattern => ":");
       Third  : Natural := Index (Source => Source,
-                                 From   => Second+1,
+                                 From   => Second + 1,
                                  Pattern => ":");
       Result : Resource;
    begin
