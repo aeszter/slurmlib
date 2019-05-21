@@ -35,6 +35,11 @@ package body Slurm.Utils is
       return Gigs (Usage_Number (Source) / 1024);
    end MiB_To_Gigs;
 
+   function MiB_To_Gigs (Source : Slurm.C_Types.uint32_t) return Gigs is
+   begin
+      return Gigs (Usage_Number (Source) / 1024);
+   end MiB_To_Gigs;
+
    function To_String (Memory : Gigs) return String is
    begin
       return Ada.Strings.Fixed.Trim (Source => Memory'Img,

@@ -80,7 +80,7 @@ private
       Reason           : Unbounded_String;
       Reason_Time      : Ada.Calendar.Time;
       Reason_User      : User_Name;
-      Tmp_Total        : Natural;
+      Tmp_Total        : Gigs;
       Weight           : Natural;
       Tres             : Unbounded_String;
       Version : Unbounded_String;
