@@ -13,6 +13,7 @@ package Slurm.Gres is
 
    function Init (Source : String) return List;
    function New_Resource (Source : String) return Resource;
+   function To_String (Item : Resource) return String;
 
 private
 

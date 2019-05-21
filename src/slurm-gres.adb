@@ -34,4 +34,11 @@ package body Slurm.Gres is
       return Result;
    end New_Resource;
 
+   function To_String (Item : Resource) return String is
+   begin
+      return Item.Number'Img & " "
+        & To_String (Item.Category) & ":"
+        & To_String (Item.Name);
+   end To_String;
+
 end Slurm.Gres;
