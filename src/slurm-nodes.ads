@@ -30,6 +30,8 @@ package Slurm.Nodes is
    type Cursor is private;
    function Element (Position : Cursor) return Node;
    function Has_Element (Position : Cursor) return Boolean;
+   function First (Collection : List) return Cursor;
+   procedure Append (Collection : in out List; Item : Node);
    procedure Iterate (Collection : List;
                       Process    : not null access procedure (Position : Cursor));
    function Load_Nodes return List;
@@ -39,11 +41,31 @@ package Slurm.Nodes is
    function Color_Class (P : Percent) return String;
    function Color_Class (Load : Node_Properties.Load) return String;
 
+   function Get_Architecture (N : Node) return String;
+   function Get_Boards (N : Node) return Positive;
+   function Get_Boot_Time (N : Node) return Ada.Calendar.Time;
+   function Get_Cores_Per_Socket (N : Node) return Positive;
+
    function Get_CPUs (N : Node) return Positive;
+   function Get_Features (N : Node) return String;
+   function Get_Free_Memory (N : Node) return String;
    function Get_Memory (N : Node) return String;
    function Get_Name (N : Node) return String;
+   function Get_OS (N : Node) return String;
+   function Get_Owner (n : Node) return User_Name;
+
+   function Get_Sockets (N : Node) return Positive;
    function Get_State (N : Node) return states;
    function Get_State (N : Node) return String;
+   function Get_Reason (N : Node) return String;
+   function Get_Reason_User (N : Node) return User_Name;
+   function Get_Reason_Time (N : Node) return Ada.Calendar.Time;
+   function Get_Start_Time (N : Node) return Ada.Calendar.Time;
+   function Get_Threads_Per_Core (N : Node) return Positive;
+   function Get_Tmp_Total (N : Node) return Gigs;
+   function Get_TRES (N : Node) return String;
+   function Get_Version (N : Node) return String;
+   function Get_Weight (N : Node) return Integer;
    function Load_Per_Core (N : Node) return Load;
    function Mem_Percentage (N : Node) return Percent;
 
@@ -55,6 +77,9 @@ package Slurm.Nodes is
                                  Process : not null access procedure (R : Slurm.Gres.Resource));
    procedure Iterate_GRES_Used (N       : Node;
                                 Process : not null access procedure (R : Slurm.Gres.Resource));
+
+   function Get_Node (Collection : List; Name : String) return Node;
+
 private
 
    type Node is record

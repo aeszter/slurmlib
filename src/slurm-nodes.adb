@@ -111,6 +111,11 @@ package body Slurm.Nodes is
    procedure Init (N : out Node; Ptr : node_info_ptr);
    function Build_List (Buffer : aliased node_info_msg_ptr) return List;
 
+   procedure Append (Collection : in out List; Item : Node) is
+   begin
+      Collection.Container.Append (Item);
+   end Append;
+
    function Build_List (Buffer : aliased node_info_msg_ptr) return List is
       use node_info_ptrs;
       Node_Ptr : node_info_ptr;
@@ -180,10 +185,45 @@ package body Slurm.Nodes is
       return Lists.Element (Lists.Cursor (Position));
    end Element;
 
+   function First (Collection : List) return Cursor is
+   begin
+      return Cursor (Collection.Container.First);
+   end First;
+
+   function Get_Architecture (N : Node) return String is
+   begin
+      return To_String (N.Architecture);
+   end Get_Architecture;
+
+   function Get_Boards (N : Node) return Positive is
+   begin
+      return N.Boards;
+   end Get_Boards;
+
+   function Get_Boot_Time (N : Node) return Ada.Calendar.Time is
+   begin
+      return N.Boot_Time;
+   end Get_Boot_Time;
+
+   function Get_Cores_Per_Socket (N : Node) return Positive is
+   begin
+      return N.Cores_Per_Socket;
+   end Get_Cores_Per_Socket;
+
    function Get_CPUs (N : Node) return Positive is
    begin
       return N.CPUs;
    end Get_CPUs;
+
+   function Get_Features (N : Node) return String is
+   begin
+      return To_String (N.Features);
+   end Get_Features;
+
+   function Get_Free_Memory (N : Node) return String is
+   begin
+      return To_String (N.Free_Memory);
+   end Get_Free_Memory;
 
    function Get_Memory (N : Node) return String is
    begin
@@ -195,6 +235,55 @@ package body Slurm.Nodes is
       return To_String (N.Name);
    end Get_Name;
 
+   function Get_Node (Collection : List; Name : String) return Node is
+      Position : Cursor := First (Collection);
+   begin
+      while Has_Element (Position)
+      loop
+         if Element (Position).Name = Name then
+            return Element (Position);
+         else
+            Next (Position);
+         end if;
+      end loop;
+      raise Constraint_Error with "Node not found";
+   end Get_Node;
+
+   function Get_OS (N : Node) return String is
+   begin
+      return To_String (N.OS);
+   end Get_OS;
+
+   function Get_Owner (n : Node) return User_Name is
+   begin
+      return n.Owner;
+   end Get_Owner;
+
+   function Get_Reason (N : Node) return String is
+   begin
+      return To_String (N.Reason);
+   end Get_Reason;
+
+   function Get_Reason_Time (N : Node) return Ada.Calendar.Time is
+   begin
+      return N.Reason_Time;
+   end Get_Reason_Time;
+
+   function Get_Reason_User (N : Node) return User_Name is
+   begin
+      return N.Reason_User;
+   end Get_Reason_User;
+
+   function Get_Sockets (N : Node) return Positive is
+   begin
+      return N.Sockets;
+   end Get_Sockets;
+
+   function Get_Start_Time (N : Node) return Ada.Calendar.Time is
+   begin
+      return N.Start_Time;
+   end Get_Start_Time;
+
    function Get_State (N : Node) return states is
    begin
       return Enum_To_State (N.State and 16#f#);
@@ -204,6 +293,31 @@ package body Slurm.Nodes is
    begin
       return states'(Get_State (N))'Img;
    end Get_State;
+
+   function Get_Threads_Per_Core (N : Node) return Positive is
+   begin
+      return N.Threads_Per_Core;
+   end Get_Threads_Per_Core;
+
+   function Get_Tmp_Total (N : Node) return Gigs is
+   begin
+      return N.Tmp_Total;
+   end Get_Tmp_Total;
+
+   function Get_TRES (N : Node) return String is
+   begin
+      return To_String (N.Tres);
+   end Get_TRES;
+
+   function Get_Version (N : Node) return String is
+   begin
+      return To_String (N.Version);
+   end Get_Version;
+
+   function Get_Weight (N : Node) return Integer is
+   begin
+      return N.Weight;
+   end Get_Weight;
 
    overriding function Has_Element (Position : Cursor) return Boolean is
    begin
@@ -250,7 +364,7 @@ package body Slurm.Nodes is
       N.Start_Time := Convert_Time (Ptr.all.slurmd_start_time);
       N.Sockets := Natural (Ptr.all.sockets);
       N.Threads_Per_Core := Natural (Ptr.all.threads);
-      N.Tmp_Total := Natural (Ptr.all.tmp_disk);
+      N.Tmp_Total := MiB_To_Gigs (Ptr.all.tmp_disk);
       N.Weight := Natural (Ptr.all.weight);
       N.Tres := Convert_String (Ptr.all.tres_fmt_str);
       N.Version := Convert_String (Ptr.all.version);
