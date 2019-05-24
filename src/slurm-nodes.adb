@@ -352,7 +352,12 @@ package body Slurm.Nodes is
          when others =>
             N.Owner := To_User_Name ("");
       end;
-      N.Real_Memory := MiB_To_Gigs (Ptr.all.real_memory);
+      begin
+         N.Real_Memory := MiB_To_Gigs (Ptr.all.real_memory);
+      exception
+         when others =>
+            N.Real_Memory := Gigs (0);
+      end;
       N.Reason := Convert_String (Ptr.all.reason);
       if N.Reason = "" then
          N.Reason_Time := Convert_Time (0);
@@ -364,7 +369,12 @@ package body Slurm.Nodes is
       N.Start_Time := Convert_Time (Ptr.all.slurmd_start_time);
       N.Sockets := Natural (Ptr.all.sockets);
       N.Threads_Per_Core := Natural (Ptr.all.threads);
-      N.Tmp_Total := MiB_To_Gigs (Ptr.all.tmp_disk);
+      begin
+         N.Tmp_Total := MiB_To_Gigs (Ptr.all.tmp_disk);
+      exception
+         when others =>
+            N.Tmp_Total := Gigs (0);
+      end;
       N.Weight := Natural (Ptr.all.weight);
       N.Tres := Convert_String (Ptr.all.tres_fmt_str);
       N.Version := Convert_String (Ptr.all.version);
