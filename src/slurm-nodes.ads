@@ -66,6 +66,15 @@ package Slurm.Nodes is
    function Get_TRES (N : Node) return String;
    function Get_Version (N : Node) return String;
    function Get_Weight (N : Node) return Integer;
+
+   function Is_Draining (N : Node) return Boolean;
+   function Is_Completing (N : Node) return Boolean;
+   function Is_Not_Responding (N : Node) return Boolean;
+   function Is_Power_Saving (N : Node) return Boolean;
+   function Is_Failing (N : Node) return Boolean;
+   function Is_Powering_Up (N : Node) return Boolean;
+   function Is_Maintenance (N : Node) return Boolean;
+
    function Load_Per_Core (N : Node) return Load;
    function Mem_Percentage (N : Node) return Percent;
 

@@ -380,6 +380,41 @@ package body Slurm.Nodes is
       N.Version := Convert_String (Ptr.all.version);
    end Init;
 
+   function Is_Completing (N : Node) return Boolean is
+   begin
+      return (N.State and 16#0400#) /= 0;
+   end Is_Completing;
+
+   function Is_Draining (N : Node) return Boolean is
+   begin
+      return (N.State and 16#200#) /= 0;
+   end Is_Draining;
+
+   function Is_Failing (N : Node) return Boolean is
+   begin
+      return (N.State and 16#2000#) /= 0;
+   end Is_Failing;
+
+   function Is_Maintenance (N : Node) return Boolean is
+   begin
+      return (N.State and 16#8000#) /= 0;
+   end Is_Maintenance;
+
+   function Is_Not_Responding (N : Node) return Boolean is
+   begin
+      return (N.State and 16#0800#) /= 0;
+   end Is_Not_Responding;
+
+   function Is_Power_Saving (N : Node) return Boolean is
+   begin
+      return (N.State and 16#1000#) /= 0;
+   end Is_Power_Saving;
+
+   function Is_Powering_Up (N : Node) return Boolean is
+   begin
+      return (N.State and 16#4000#) /= 0;
+   end Is_Powering_Up;
+
    procedure Iterate (Collection : List;
                       Process    : not null access procedure (Position : Cursor)) is
       procedure Wrapper (Position : Lists.Cursor);
