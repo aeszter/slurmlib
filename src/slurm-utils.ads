@@ -6,7 +6,7 @@ with Slurm.C_Types;
 with POSIX.C;
 
 package Slurm.Utils is
-   Version : String := "v0.2";
+   Version : String := "develop";
    type Tri_State is (False, True, Undecided);
    type User_Name is new String (1 .. 8);
 
