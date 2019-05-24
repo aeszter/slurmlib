@@ -1,14 +1,12 @@
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
-with Ada.Strings.Bounded;
-with Ada.Containers.Doubly_Linked_Lists;
-with Ada.Containers.Ordered_Maps;
-with Ada.Containers.Ordered_Sets;
---  with POSIX; use POSIX;
 with Ada.Calendar;
-with Interfaces.C.Strings;
+with Interfaces.C.Strings; use Interfaces.C.Strings;
+with Slurm.C_Types;
+with Slurm.C_Types;
+with POSIX.C;
 
 package Slurm.Utils is
-   Version : String := "v0.1";
+   Version : String := "v0.2";
    type Tri_State is (False, True, Undecided);
    type User_Name is new String (1 .. 8);
 
@@ -22,6 +20,10 @@ package Slurm.Utils is
    type Usage_Number is delta 0.0001 digits 18;
    type Usage_Integer is range 0 .. 10 ** 12;
 
+   type Gigs is delta 0.001 digits 7;
+   function To_String (Memory : Gigs) return String;
+   function MiB_To_Gigs (Source : Slurm.C_Types.uint64_t) return Gigs;
+   function MiB_To_Gigs (Source : Slurm.C_Types.uint32_t) return Gigs;
 
 --     function To_Tri_State (Truth : String) return Tri_State;
 --     function To_Tri_State (Truth : Boolean) return Tri_State;
@@ -55,6 +57,10 @@ package Slurm.Utils is
    function To_User_Name (User : String) return User_Name;
    function To_String (User : User_Name) return String;
    function To_String (Source : Interfaces.C.Strings.chars_ptr) return String;
+   function Convert_String (Source : chars_ptr) return Unbounded_String;
+   function Convert_Time (Source : POSIX.C.time_t) return Ada.Calendar.Time;
+   function Convert_User (UID : Slurm.C_Types.uint32_t) return User_Name;
+
 --
 --     function To_Time (Time_String : String) return Ada.Calendar.Time;
 --     function User_Is_Manager (User : String) return Boolean;

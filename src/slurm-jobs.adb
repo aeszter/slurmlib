@@ -197,6 +197,211 @@ package body Slurm.Jobs is
                       10 => JOB_DEADLINE,
                       11 => JOB_OOM);
 
+   type Enum_To_Reason_Map is array (uint16_t range
+                                     0 .. 197) of state_reasons;
+   Enum_To_Reason : constant Enum_To_Reason_Map :=
+                      (
+0 => WAIT_NO_REASON,
+1 => WAIT_PRIORITY,
+2 => WAIT_DEPENDENCY,
+3 => WAIT_RESOURCES,
+4 => WAIT_PART_NODE_LIMIT,
+5 => WAIT_PART_TIME_LIMIT,
+6 => WAIT_PART_DOWN,
+7 => WAIT_PART_INACTIVE,
+8 => WAIT_HELD,
+9 => WAIT_TIME,
+10 => WAIT_LICENSES,
+11 => WAIT_ASSOC_JOB_LIMIT,
+12 => WAIT_ASSOC_RESOURCE_LIMIT,
+13 => WAIT_ASSOC_TIME_LIMIT,
+14 => WAIT_RESERVATION,
+15 => WAIT_NODE_NOT_AVAIL,
+16 => WAIT_HELD_USER,
+17 => WAIT_FRONT_END,
+18 => FAIL_DOWN_PARTITION,
+19 => FAIL_DOWN_NODE,
+20 => FAIL_BAD_CONSTRAINTS,
+21 => FAIL_SYSTEM,
+22 => FAIL_LAUNCH,
+23 => FAIL_EXIT_CODE,
+24 => FAIL_TIMEOUT,
+25 => FAIL_INACTIVE_LIMIT,
+26 => FAIL_ACCOUNT,
+27 => FAIL_QOS,
+28 => WAIT_QOS_THRES,
+29 => WAIT_QOS_JOB_LIMIT,
+30 => WAIT_QOS_RESOURCE_LIMIT,
+31 => WAIT_QOS_TIME_LIMIT,
+32 => WAIT_BLOCK_MAX_ERR,
+33 => WAIT_BLOCK_D_ACTION,
+34 => WAIT_CLEANING,
+35 => WAIT_PROLOG,
+36 => WAIT_QOS,
+37 => WAIT_ACCOUNT,
+38 => WAIT_DEP_INVALID,
+39 => WAIT_QOS_GRP_CPU,
+40 => WAIT_QOS_GRP_CPU_MIN,
+41 => WAIT_QOS_GRP_CPU_RUN_MIN,
+42 => WAIT_QOS_GRP_JOB,
+43 => WAIT_QOS_GRP_MEM,
+44 => WAIT_QOS_GRP_NODE,
+45 => WAIT_QOS_GRP_SUB_JOB,
+46 => WAIT_QOS_GRP_WALL,
+47 => WAIT_QOS_MAX_CPU_PER_JOB,
+48 => WAIT_QOS_MAX_CPU_MINS_PER_JOB,
+49 => WAIT_QOS_MAX_NODE_PER_JOB,
+50 => WAIT_QOS_MAX_WALL_PER_JOB,
+51 => WAIT_QOS_MAX_CPU_PER_USER,
+52 => WAIT_QOS_MAX_JOB_PER_USER,
+53 => WAIT_QOS_MAX_NODE_PER_USER,
+54 => WAIT_QOS_MAX_SUB_JOB,
+55 => WAIT_QOS_MIN_CPU,
+56 => WAIT_ASSOC_GRP_CPU,
+57 => WAIT_ASSOC_GRP_CPU_MIN,
+58 => WAIT_ASSOC_GRP_CPU_RUN_MIN,
+59 => WAIT_ASSOC_GRP_JOB,
+60 => WAIT_ASSOC_GRP_MEM,
+61 => WAIT_ASSOC_GRP_NODE,
+62 => WAIT_ASSOC_GRP_SUB_JOB,
+63 => WAIT_ASSOC_GRP_WALL,
+64 => WAIT_ASSOC_MAX_JOBS,
+65 => WAIT_ASSOC_MAX_CPU_PER_JOB,
+66 => WAIT_ASSOC_MAX_CPU_MINS_PER_JOB,
+67 => WAIT_ASSOC_MAX_NODE_PER_JOB,
+68 => WAIT_ASSOC_MAX_WALL_PER_JOB,
+69 => WAIT_ASSOC_MAX_SUB_JOB,
+70 => WAIT_MAX_REQUEUE,
+71 => WAIT_ARRAY_TASK_LIMIT,
+72 => WAIT_BURST_BUFFER_RESOURCE,
+73 => WAIT_BURST_BUFFER_STAGING,
+74 => FAIL_BURST_BUFFER_OP,
+75 => WAIT_POWER_NOT_AVAIL,
+76 => WAIT_POWER_RESERVED,
+77 => WAIT_ASSOC_GRP_UNK,
+78 => WAIT_ASSOC_GRP_UNK_MIN,
+79 => WAIT_ASSOC_GRP_UNK_RUN_MIN,
+80 => WAIT_ASSOC_MAX_UNK_PER_JOB,
+81 => WAIT_ASSOC_MAX_UNK_PER_NODE,
+82 => WAIT_ASSOC_MAX_UNK_MINS_PER_JOB,
+83 => WAIT_ASSOC_MAX_CPU_PER_NODE,
+84 => WAIT_ASSOC_GRP_MEM_MIN,
+85 => WAIT_ASSOC_GRP_MEM_RUN_MIN,
+86 => WAIT_ASSOC_MAX_MEM_PER_JOB,
+87 => WAIT_ASSOC_MAX_MEM_PER_NODE,
+88 => WAIT_ASSOC_MAX_MEM_MINS_PER_JOB,
+89 => WAIT_ASSOC_GRP_NODE_MIN,
+90 => WAIT_ASSOC_GRP_NODE_RUN_MIN,
+91 => WAIT_ASSOC_MAX_NODE_MINS_PER_JOB,
+92 => WAIT_ASSOC_GRP_ENERGY,
+93 => WAIT_ASSOC_GRP_ENERGY_MIN,
+94 => WAIT_ASSOC_GRP_ENERGY_RUN_MIN,
+95 => WAIT_ASSOC_MAX_ENERGY_PER_JOB,
+96 => WAIT_ASSOC_MAX_ENERGY_PER_NODE,
+97 => WAIT_ASSOC_MAX_ENERGY_MINS_PER_JOB,
+98 => WAIT_ASSOC_GRP_GRES,
+99 => WAIT_ASSOC_GRP_GRES_MIN,
+100 => WAIT_ASSOC_GRP_GRES_RUN_MIN,
+101 => WAIT_ASSOC_MAX_GRES_PER_JOB,
+102 => WAIT_ASSOC_MAX_GRES_PER_NODE,
+103 => WAIT_ASSOC_MAX_GRES_MINS_PER_JOB,
+104 => WAIT_ASSOC_GRP_LIC,
+105 => WAIT_ASSOC_GRP_LIC_MIN,
+106 => WAIT_ASSOC_GRP_LIC_RUN_MIN,
+107 => WAIT_ASSOC_MAX_LIC_PER_JOB,
+108 => WAIT_ASSOC_MAX_LIC_MINS_PER_JOB,
+109 => WAIT_ASSOC_GRP_BB,
+110 => WAIT_ASSOC_GRP_BB_MIN,
+111 => WAIT_ASSOC_GRP_BB_RUN_MIN,
+112 => WAIT_ASSOC_MAX_BB_PER_JOB,
+113 => WAIT_ASSOC_MAX_BB_PER_NODE,
+114 => WAIT_ASSOC_MAX_BB_MINS_PER_JOB,
+115 => WAIT_QOS_GRP_UNK,
+116 => WAIT_QOS_GRP_UNK_MIN,
+117 => WAIT_QOS_GRP_UNK_RUN_MIN,
+118 => WAIT_QOS_MAX_UNK_PER_JOB,
+119 => WAIT_QOS_MAX_UNK_PER_NODE,
+120 => WAIT_QOS_MAX_UNK_PER_USER,
+121 => WAIT_QOS_MAX_UNK_MINS_PER_JOB,
+122 => WAIT_QOS_MIN_UNK,
+123 => WAIT_QOS_MAX_CPU_PER_NODE,
+124 => WAIT_QOS_GRP_MEM_MIN,
+125 => WAIT_QOS_GRP_MEM_RUN_MIN,
+126 => WAIT_QOS_MAX_MEM_MINS_PER_JOB,
+127 => WAIT_QOS_MAX_MEM_PER_JOB,
+128 => WAIT_QOS_MAX_MEM_PER_NODE,
+129 => WAIT_QOS_MAX_MEM_PER_USER,
+130 => WAIT_QOS_MIN_MEM,
+131 => WAIT_QOS_GRP_ENERGY,
+132 => WAIT_QOS_GRP_ENERGY_MIN,
+133 => WAIT_QOS_GRP_ENERGY_RUN_MIN,
+134 => WAIT_QOS_MAX_ENERGY_PER_JOB,
+135 => WAIT_QOS_MAX_ENERGY_PER_NODE,
+136 => WAIT_QOS_MAX_ENERGY_PER_USER,
+137 => WAIT_QOS_MAX_ENERGY_MINS_PER_JOB,
+138 => WAIT_QOS_MIN_ENERGY,
+139 => WAIT_QOS_GRP_NODE_MIN,
+140 => WAIT_QOS_GRP_NODE_RUN_MIN,
+141 => WAIT_QOS_MAX_NODE_MINS_PER_JOB,
+142 => WAIT_QOS_MIN_NODE,
+143 => WAIT_QOS_GRP_GRES,
+144 => WAIT_QOS_GRP_GRES_MIN,
+145 => WAIT_QOS_GRP_GRES_RUN_MIN,
+146 => WAIT_QOS_MAX_GRES_PER_JOB,
+147 => WAIT_QOS_MAX_GRES_PER_NODE,
+148 => WAIT_QOS_MAX_GRES_PER_USER,
+149 => WAIT_QOS_MAX_GRES_MINS_PER_JOB,
+150 => WAIT_QOS_MIN_GRES,
+151 => WAIT_QOS_GRP_LIC,
+152 => WAIT_QOS_GRP_LIC_MIN,
+153 => WAIT_QOS_GRP_LIC_RUN_MIN,
+154 => WAIT_QOS_MAX_LIC_PER_JOB,
+155 => WAIT_QOS_MAX_LIC_PER_USER,
+156 => WAIT_QOS_MAX_LIC_MINS_PER_JOB,
+157 => WAIT_QOS_MIN_LIC,
+158 => WAIT_QOS_GRP_BB,
+159 => WAIT_QOS_GRP_BB_MIN,
+160 => WAIT_QOS_GRP_BB_RUN_MIN,
+161 => WAIT_QOS_MAX_BB_PER_JOB,
+162 => WAIT_QOS_MAX_BB_PER_NODE,
+163 => WAIT_QOS_MAX_BB_PER_USER,
+164 => WAIT_QOS_MAX_BB_MINS_PER_JOB,
+165 => WAIT_QOS_MIN_BB,
+166 => FAIL_DEADLINE,
+167 => WAIT_QOS_MAX_BB_PER_ACCT,
+168 => WAIT_QOS_MAX_CPU_PER_ACCT,
+169 => WAIT_QOS_MAX_ENERGY_PER_ACCT,
+170 => WAIT_QOS_MAX_GRES_PER_ACCT,
+171 => WAIT_QOS_MAX_NODE_PER_ACCT,
+172 => WAIT_QOS_MAX_LIC_PER_ACCT,
+173 => WAIT_QOS_MAX_MEM_PER_ACCT,
+174 => WAIT_QOS_MAX_UNK_PER_ACCT,
+175 => WAIT_QOS_MAX_JOB_PER_ACCT,
+176 => WAIT_QOS_MAX_SUB_JOB_PER_ACCT,
+177 => WAIT_PART_CONFIG,
+178 => WAIT_ACCOUNT_POLICY,
+179 => WAIT_FED_JOB_LOCK,
+180 => FAIL_OOM,
+181 => WAIT_PN_MEM_LIMIT,
+182 => WAIT_ASSOC_GRP_BILLING,
+183 => WAIT_ASSOC_GRP_BILLING_MIN,
+184 => WAIT_ASSOC_GRP_BILLING_RUN_MIN,
+185 => WAIT_ASSOC_MAX_BILLING_PER_JOB,
+186 => WAIT_ASSOC_MAX_BILLING_PER_NODE,
+187 => WAIT_ASSOC_MAX_BILLING_MINS_PER_JOB,
+188 => WAIT_QOS_GRP_BILLING,
+189 => WAIT_QOS_GRP_BILLING_MIN,
+190 => WAIT_QOS_GRP_BILLING_RUN_MIN,
+191 => WAIT_QOS_MAX_BILLING_PER_JOB,
+192 => WAIT_QOS_MAX_BILLING_PER_NODE,
+193 => WAIT_QOS_MAX_BILLING_PER_USER,
+194 => WAIT_QOS_MAX_BILLING_MINS_PER_JOB,
+195 => WAIT_QOS_MAX_BILLING_PER_ACCT,
+196 => WAIT_QOS_MIN_BILLING,
+197 => WAIT_RESV_DELETED
+
+                         );
+   pragma Warnings (off, "constant*is not referenced");
    JOB_STATE_BASE : constant uint32_t := 16#ff#;
    JOB_LAUNCH_FAILED : constant uint32_t := 16#00000100#;
    JOB_UPDATE_DB     : constant uint32_t := 16#00000200#; --  Send job start to database again
@@ -208,24 +413,30 @@ package body Slurm.Jobs is
                                 --      immediately before job changes size
    JOB_CONFIGURING   : constant uint32_t := 16#00004000#; --  Allocated nodes booting
    JOB_COMPLETING    : constant uint32_t := 16#00008000#; --  Waiting for epilog completion
-   JOB_STOPPED       : constant uint32_t := 16#00010000#; --  Job is stopped state (holding resources,
-                                                          --                      but sent SIGSTOP
+   JOB_STOPPED       : constant uint32_t := 16#00010000#; --  Job is stopped state (holding
+                                                         -- resources, but sent SIGSTOP
    JOB_RECONFIG_FAIL : constant uint32_t := 16#00020000#; --  Node configuration for job failed,
 --                                      not job state, just job requeue flag
    JOB_POWER_UP_NODE  : constant uint32_t := 16#00040000#; --  Allocated powered down nodes,
-                                                           -- waiting for reboot
+                                                            -- waiting for reboot
    JOB_REVOKED        : constant uint32_t := 16#00080000#; --  Sibling job revoked
    JOB_REQUEUE_FED    : constant uint32_t := 16#00100000#; --  Job is being requeued by federation
    JOB_RESV_DEL_HOLD : constant uint32_t := 16#00200000#; --  Job is hold
+   pragma Warnings (on, "constant*is not referenced");
 
    function getpwnam (c_name : chars_ptr) return passwd_ptr;
    pragma Import (C, getpwnam, "getpwnam");
 
-   function getpwuid (c_uid : uid_t) return passwd_ptr;
-   pragma Import (C, getpwuid, "getpwuid");
+   function getgrgid (c_gid : gid_t) return group_ptr;
+   pragma Import (C, getgrgid, "getgrgid");
 
    procedure Init (J : out Job; Ptr : job_info_ptr);
    function Build_List (Buffer : aliased job_info_msg_ptr) return List;
+
+   procedure Append (Collection : in out List; Item : Job) is
+   begin
+      Collection.Container.Append (Item);
+   end Append;
 
    function Build_List (Buffer : aliased job_info_msg_ptr) return List is
       use job_info_ptrs;
@@ -248,25 +459,98 @@ package body Slurm.Jobs is
       return Lists.Element (Lists.Cursor (Position));
    end Element;
 
+   function Extract (Source   : List;
+                     Selector : not null access function (J : Job) return Boolean)
+                     return List is
+      procedure Conditional_Copy (Position : Cursor);
+      Result : List;
+
+      procedure Conditional_Copy (Position : Cursor) is
+         J : Job := Element (Position);
+      begin
+         if Selector (J) then
+            Append (Result, J);
+         end if;
+      end Conditional_Copy;
+
+   begin
+      Iterate (Source, Conditional_Copy'Access);
+      return Result;
+   end Extract;
+
+   function First (Collection : List) return Cursor is
+   begin
+      return Cursor (Collection.Container.First);
+   end First;
+
+   function Get_Alloc_Node (J : Job) return String is
+   begin
+      return To_String (J.Alloc_Node);
+   end Get_Alloc_Node;
+
+   function Get_CPUs (J : Job) return Natural is
+   begin
+      return J.CPUs;
+   end Get_CPUs;
+
+   function Get_Dependency (J : Job) return String is
+   begin
+      return To_String (J.Dependency);
+   end Get_Dependency;
+
+   function Get_End_Time (J : Job) return Ada.Calendar.Time is
+   begin
+      return J.End_Time;
+   end Get_End_Time;
+
    function Get_Gres (J : Job) return String is
    begin
       return To_String (J.Gres);
    end Get_Gres;
+
+   function Get_Group (J : Job) return User_Name is
+   begin
+      return J.Group;
+   end Get_Group;
 
    function Get_ID (J : Job) return Positive is
    begin
       return J.ID;
    end Get_ID;
 
+   function Get_Job (Collection : List; ID : Natural) return Job is
+      Position : Cursor := First (Collection);
+   begin
+      while Has_Element (Position)
+      loop
+         if Element (Position).ID = ID then
+            return Element (Position);
+         else
+            Next (Position);
+         end if;
+      end loop;
+      raise Constraint_Error with "Job not found";
+   end Get_Job;
+
    function Get_Name (J : Job) return String is
    begin
       return To_String (J.Name);
    end Get_Name;
 
+   function Get_Nodes (J : Job) return String is
+   begin
+      return To_String (J.Nodes);
+   end Get_Nodes;
+
    function Get_Owner (J : Job) return User_Name is
    begin
       return J.Owner;
    end Get_Owner;
+
+   function Get_Partition (J : Job) return String is
+   begin
+      return To_String (J.Partition);
+   end Get_Partition;
 
    function Get_Priority (J : Job) return Natural is
    begin
@@ -278,15 +562,35 @@ package body Slurm.Jobs is
       return To_String (J.Project);
    end Get_Project;
 
+   function Get_Reservation (J : Job) return String is
+   begin
+      return To_String (J.Reservation);
+   end Get_Reservation;
+
    function Get_Start_Time (J : Job) return Ada.Calendar.Time is
    begin
       return J.Start_Time;
    end Get_Start_Time;
 
+   function Get_State (J : Job) return states is
+   begin
+      return J.State;
+   end Get_State;
+
    function Get_State (J : Job) return String is
    begin
       return J.State'Img;
    end Get_State;
+
+   function Get_State_Description (J : Job) return String is
+   begin
+      return To_String (J.State_Desc);
+   end Get_State_Description;
+
+   function Get_State_Reason (J : Job) return state_reasons is
+   begin
+      return J.State_Reason;
+   end Get_State_Reason;
 
    function Get_Submission_Time (J : Job) return Ada.Calendar.Time is
    begin
@@ -324,33 +628,79 @@ package body Slurm.Jobs is
       return False; -- until we figure out what state is equivalent to sge's error state
    end Has_Error;
 
+   function Has_Share (J : Job) return Boolean is
+   begin
+      return J.Shared;
+   end Has_Share;
+
+   function Has_Start_Time (J : Job) return Boolean is
+   begin
+      return J.Has_Start_Time;
+   end Has_Start_Time;
+
    procedure Init (J : out Job; Ptr : job_info_ptr) is
    begin
+      J.Alloc_Node := To_Unbounded_String (To_String (Ptr.all.alloc_node));
       J.Gres := To_Unbounded_String (To_String (Ptr.all.gres));
       J.ID := Integer (Ptr.all.job_id);
       J.Name := To_Unbounded_String (To_String (Ptr.all.name));
       declare
          Given_Name : String := To_String (Ptr.all.user_name);
-         pw_entry : passwd_ptr;
       begin
          if Given_Name /= "" then
             J.Owner := To_User_Name (Given_Name);
          else
-            pw_entry := getpwuid (uid_t (Ptr.all.user_id));
-            if pw_entry = null
-            then
-               raise Constraint_Error;
-            end if;
-            J.Owner := To_User_Name (POSIX.To_String (Form_POSIX_String (pw_entry.all.pw_name)));
+            J.Owner := Convert_User (Ptr.all.user_id);
          end if;
+      exception
+            when Constraint_Error =>
+            J.Owner := To_User_Name ("unknown");
       end;
       J.Priority := Natural (Ptr.all.priority);
       J.Project := To_Unbounded_String (To_String (Ptr.all.wckey));
+      if Ptr.all.shared = 0 then
+         J.Shared := False;
+      else
+         J.Shared := True;
+      end if;
       J.Start_Time := Ada.Calendar.Conversions.To_Ada_Time (Interfaces.C.long (Ptr.all.start_time));
+      if Ptr.all.start_time = 0 then
+         J.Has_Start_Time := False;
+      else
+         J.Has_Start_Time := True;
+      end if;
+      J.End_Time := Ada.Calendar.Conversions.To_Ada_Time (Interfaces.C.long (Ptr.all.end_time));
+      if Ptr.all.end_time = 0 then
+         J.Has_End_Time := False;
+      else
+         J.Has_End_Time := True;
+      end if;
       J.State := Enum_To_State (Ptr.all.job_state and JOB_STATE_BASE);
-      J.Submission_Time := Ada.Calendar.Conversions.To_Ada_Time (Interfaces.C.long (Ptr.all.submit_time));
+      J.Submission_Time := Convert_Time (Ptr.all.submit_time);
       J.Tasks := Integer (Ptr.all.num_tasks);
+      J.CPUs := Integer (Ptr.all.num_cpus);
+      J.Dependency := To_Unbounded_String (To_String (Ptr.all.dependency));
+      declare
+         gr_entry : group_ptr;
+      begin
+         gr_entry := getgrgid (gid_t (Ptr.all.group_id));
+         if gr_entry = null
+         then
+            raise Constraint_Error;
+         end if;
+         J.Group := To_User_Name (POSIX.To_String (Form_POSIX_String (gr_entry.all.gr_name)));
+      end;
+      J.Nodes := To_Unbounded_String (To_String (Ptr.all.nodes));
+      J.Partition := To_Unbounded_String (To_String (Ptr.all.partition));
+      J.Reservation := To_Unbounded_String (To_String (Ptr.all.resv_name));
+      J.State_Desc := To_Unbounded_String (To_String (Ptr.all.state_desc));
+      J.State_Reason := Enum_To_Reason (Ptr.all.state_reason);
    end Init;
+
+   function Is_Pending (J : Job) return Boolean is
+   begin
+      return J.State = JOB_PENDING;
+   end Is_Pending;
 
    function Is_Running (J : Job) return Boolean is
    begin
