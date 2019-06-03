@@ -647,6 +647,16 @@ package body Slurm.Jobs is
       return J.Tasks;
    end Get_Tasks;
 
+   function Get_TRES_Allocated (J : Job) return String is
+   begin
+      return To_String (J.TRES_Allocated);
+   end Get_TRES_Allocated;
+
+   function Get_TRES_Request (J : Job) return String is
+   begin
+      return To_String (J.TRES_Request);
+   end Get_TRES_Request;
+
    function Get_Working_Directory (J : Job) return String is
    begin
       return To_String (J.Directory);
@@ -747,6 +757,8 @@ package body Slurm.Jobs is
       J.Comment := Convert_String (Ptr.all.comment);
       J.Command := Convert_String (Ptr.all.command);
       J.Directory := Convert_String (Ptr.all.work_dir);
+      J.TRES_Request := Convert_String (Ptr.all.tres_req_str);
+      J.TRES_Allocated := Convert_String (Ptr.all.tres_alloc_str);
    end Init;
 
    function Is_Pending (J : Job) return Boolean is

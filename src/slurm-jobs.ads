@@ -340,6 +340,8 @@ package Slurm.Jobs is
    function Get_Std_In (J : Job) return String;
    function Get_Std_Out (J : Job) return String;
    function Get_Std_Err (J : Job) return String;
+   function Get_TRES_Request (J : Job) return String;
+   function Get_TRES_Allocated (J : Job) return String;
    function Get_Working_Directory (J : Job) return String;
    function Has_Error (J : Job) return Boolean;
    function Is_Pending (J : Job) return Boolean;
@@ -386,7 +388,8 @@ private
       Reservation     : Unbounded_String;
       Std_In, Std_Err, Std_Out : Unbounded_String;
       Directory                : Unbounded_String;
-      Command : Unbounded_String;
+      Command                  : Unbounded_String;
+      TRES_Request, TRES_Allocated : Unbounded_String;
    end record;
 
    package Lists is new ada.Containers.Doubly_Linked_Lists (Element_Type => Job);
