@@ -483,10 +483,25 @@ package body Slurm.Jobs is
       return Cursor (Collection.Container.First);
    end First;
 
+   function Get_Admin_Comment (J : Job) return String is
+   begin
+      return To_String (J.Admin_Comment);
+   end Get_Admin_Comment;
+
    function Get_Alloc_Node (J : Job) return String is
    begin
       return To_String (J.Alloc_Node);
    end Get_Alloc_Node;
+
+   function Get_Command (J : Job) return String is
+   begin
+      return To_String (J.Command);
+   end Get_Command;
+
+   function Get_Comment (J : Job) return String is
+   begin
+      return To_String (J.Comment);
+   end Get_Comment;
 
    function Get_CPUs (J : Job) return Natural is
    begin
@@ -592,6 +607,21 @@ package body Slurm.Jobs is
       return J.State_Reason;
    end Get_State_Reason;
 
+   function Get_Std_Err (J : Job) return String is
+   begin
+      return To_String (J.Std_Err);
+   end Get_Std_Err;
+
+   function Get_Std_In (J : Job) return String is
+   begin
+      return To_String (J.Std_In);
+   end Get_Std_In;
+
+   function Get_Std_Out (J : Job) return String is
+   begin
+      return To_String (J.Std_Out);
+   end Get_Std_Out;
+
    function Get_Submission_Time (J : Job) return Ada.Calendar.Time is
    begin
       return J.Submission_Time;
@@ -617,6 +647,21 @@ package body Slurm.Jobs is
       return J.Tasks;
    end Get_Tasks;
 
+   function Get_Working_Directory (J : Job) return String is
+   begin
+      return To_String (J.Directory);
+   end Get_Working_Directory;
+
+   function Has_Admin_Comment (J : Job) return Boolean is
+   begin
+      return J.Admin_Comment /= "";
+   end Has_Admin_Comment;
+
+   function Has_Comment (J : Job) return Boolean is
+   begin
+      return J.Comment /= "";
+   end Has_Comment;
+
    overriding function Has_Element (Position : Cursor) return Boolean is
    begin
       return Lists.Has_Element (Lists.Cursor (Position));
@@ -640,10 +685,10 @@ package body Slurm.Jobs is
 
    procedure Init (J : out Job; Ptr : job_info_ptr) is
    begin
-      J.Alloc_Node := To_Unbounded_String (To_String (Ptr.all.alloc_node));
-      J.Gres := To_Unbounded_String (To_String (Ptr.all.gres));
+      J.Alloc_Node := Convert_String (Ptr.all.alloc_node);
+      J.Gres := Convert_String (Ptr.all.gres);
       J.ID := Integer (Ptr.all.job_id);
-      J.Name := To_Unbounded_String (To_String (Ptr.all.name));
+      J.Name := Convert_String (Ptr.all.name);
       declare
          Given_Name : String := To_String (Ptr.all.user_name);
       begin
@@ -657,7 +702,7 @@ package body Slurm.Jobs is
             J.Owner := To_User_Name ("unknown");
       end;
       J.Priority := Natural (Ptr.all.priority);
-      J.Project := To_Unbounded_String (To_String (Ptr.all.wckey));
+      J.Project := Convert_String (Ptr.all.wckey);
       if Ptr.all.shared = 0 then
          J.Shared := False;
       else
@@ -679,7 +724,7 @@ package body Slurm.Jobs is
       J.Submission_Time := Convert_Time (Ptr.all.submit_time);
       J.Tasks := Integer (Ptr.all.num_tasks);
       J.CPUs := Integer (Ptr.all.num_cpus);
-      J.Dependency := To_Unbounded_String (To_String (Ptr.all.dependency));
+      J.Dependency := Convert_String (Ptr.all.dependency);
       declare
          gr_entry : group_ptr;
       begin
@@ -690,11 +735,18 @@ package body Slurm.Jobs is
          end if;
          J.Group := To_User_Name (POSIX.To_String (Form_POSIX_String (gr_entry.all.gr_name)));
       end;
-      J.Nodes := To_Unbounded_String (To_String (Ptr.all.nodes));
-      J.Partition := To_Unbounded_String (To_String (Ptr.all.partition));
-      J.Reservation := To_Unbounded_String (To_String (Ptr.all.resv_name));
-      J.State_Desc := To_Unbounded_String (To_String (Ptr.all.state_desc));
+      J.Nodes := Convert_String (Ptr.all.nodes);
+      J.Partition := Convert_String (Ptr.all.partition);
+      J.Reservation := Convert_String (Ptr.all.resv_name);
+      J.State_Desc := Convert_String (Ptr.all.state_desc);
       J.State_Reason := Enum_To_Reason (Ptr.all.state_reason);
+      J.Std_In := Convert_String (Ptr.all.std_in);
+      J.Std_Out := Convert_String (Ptr.all.std_out);
+      J.Std_Err := Convert_String (Ptr.all.std_err);
+      J.Admin_Comment := Convert_String (Ptr.all.admin_comment);
+      J.Comment := Convert_String (Ptr.all.comment);
+      J.Command := Convert_String (Ptr.all.command);
+      J.Directory := Convert_String (Ptr.all.work_dir);
    end Init;
 
    function Is_Pending (J : Job) return Boolean is

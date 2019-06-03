@@ -308,6 +308,11 @@ package Slurm.Jobs is
    procedure Iterate (Collection : List;
                       Process    : not null access procedure (Position : Cursor));
    function Get_Alloc_Node (J : Job) return String;
+   function Get_Command (J : Job) return String;
+   function Has_Admin_Comment (J : Job) return Boolean;
+   function Get_Admin_Comment (J : Job) return String;
+   function Has_Comment (J : Job) return Boolean;
+   function Get_Comment (J : Job) return String;
    function Get_CPUs (J : Job) return Natural;
    function Get_Dependency (J : Job) return String;
    function Get_Gres (J : Job) return String;
@@ -332,6 +337,10 @@ package Slurm.Jobs is
    function Get_State_Reason (J : Job) return state_reasons;
    function Get_Submission_Time (J : Job) return Ada.Calendar.Time;
    function Get_Tasks (J : Job) return Positive;
+   function Get_Std_In (J : Job) return String;
+   function Get_Std_Out (J : Job) return String;
+   function Get_Std_Err (J : Job) return String;
+   function Get_Working_Directory (J : Job) return String;
    function Has_Error (J : Job) return Boolean;
    function Is_Pending (J : Job) return Boolean;
    function Is_Running (J : Job) return Boolean;
@@ -351,6 +360,7 @@ package Slurm.Jobs is
 private
 
    type Job is record
+      Comment, Admin_Comment : Unbounded_String;
       Alloc_Node  : Unbounded_String;
       Gres        : Unbounded_String;
       ID          : Positive;
@@ -374,7 +384,9 @@ private
       Nodes           : Unbounded_String;
       Partition       : Unbounded_String;
       Reservation     : Unbounded_String;
-
+      Std_In, Std_Err, Std_Out : Unbounded_String;
+      Directory                : Unbounded_String;
+      Command : Unbounded_String;
    end record;
 
    package Lists is new ada.Containers.Doubly_Linked_Lists (Element_Type => Job);
