@@ -111,9 +111,60 @@ package body Slurm.Nodes is
    procedure Init (N : out Node; Ptr : node_info_ptr);
    function Build_List (Buffer : aliased node_info_msg_ptr) return List;
 
+   procedure Add_Jobs (From : Slurm.Jobs.List; To : in out Node) is
+      use Slurm.Jobs;
+      procedure Attach_Job_To_Node (Position : Jobs.Cursor);
+
+      The_Name : String := Get_Name (To);
+
+      procedure Attach_Job_To_Node (Position : Jobs.Cursor) is
+         J : Job := Element (Position);
+      begin
+         if Has_Node (J, The_Name) then
+            To.Jobs.Include (Get_ID (J));
+         end if;
+      end Attach_Job_To_Node;
+
+   begin
+      Iterate (From, Attach_Job_To_Node'Access);
+   end Add_Jobs;
+
+   procedure Add_Jobs (From : Slurm.Jobs.List; To : in out List) is
+      use Slurm.Jobs;
+      procedure Add_One_Job (Key : Unbounded_String; N : in out Node);
+      procedure Attach_Job_To_Nodes (Position : Jobs.Cursor);
+      procedure Attach_Job (Position : String_Sets.Cursor);
+
+      ID : Natural;
+
+      procedure Add_One_Job (Key : Unbounded_String; N : in out Node) is
+         pragma Unreferenced (Key);
+      begin
+         N.Jobs.Include (ID);
+      end Add_One_Job;
+
+      procedure Attach_Job (Position : String_Sets.Cursor) is
+         The_Node : Lists.Cursor := To.Container.Find (String_Sets.Element (Position));
+      begin
+         To.Container.Update_Element (Position => The_Node,
+                                      Process  => Add_One_Job'Access);
+      end Attach_Job;
+
+      procedure Attach_Job_To_Nodes (Position : Jobs.Cursor) is
+         J : Job := Element (Position);
+         Nodes : String_Sets.Set := Get_Nodes (J);
+      begin
+         ID := Get_ID (J);
+         Nodes.Iterate (Attach_Job'Access);
+      end Attach_Job_To_Nodes;
+
+   begin
+      Iterate (From, Attach_Job_To_Nodes'Access);
+   end Add_Jobs;
+
    procedure Append (Collection : in out List; Item : Node) is
    begin
-      Collection.Container.Append (Item);
+      Collection.Container.Insert (Item.Name, Item);
    end Append;
 
    function Build_List (Buffer : aliased node_info_msg_ptr) return List is
@@ -125,7 +176,7 @@ package body Slurm.Nodes is
       Node_Ptr := Buffer.node_array;
       for I in 1 .. Buffer.record_count loop
          Init (N, Node_Ptr);
-         Result.Container.Append (N);
+         Result.Container.Insert (N.Name, N);
          Increment (Node_Ptr);
       end loop;
       slurm_free_node_info_msg (Buffer);
@@ -254,10 +305,15 @@ package body Slurm.Nodes is
       return To_String (N.OS);
    end Get_OS;
 
-   function Get_Owner (n : Node) return User_Name is
+   function Get_Owner (N : Node) return User_Name is
    begin
-      return n.Owner;
+      return N.Owner;
    end Get_Owner;
+
+   function Get_Partitions (N : Node) return String is
+   begin
+      return To_String (N.Partitions);
+   end Get_Partitions;
 
    function Get_Reason (N : Node) return String is
    begin
@@ -466,9 +522,16 @@ package body Slurm.Nodes is
       N.GRES_Used.Iterate (Wrapper'Access);
    end Iterate_GRES_Used;
 
-   procedure Iterate_Jobs (N : Node; Process : not null access procedure (J : Job)) is
+   procedure Iterate_Jobs (N : Node; Process : not null access procedure (ID : Positive)) is
+      procedure Wrapper (Position : Job_Lists.Cursor);
+
+      procedure Wrapper (Position : Job_Lists.Cursor) is
+      begin
+         Process (Job_Lists.Element (Position));
+      end Wrapper;
+
    begin
-      null; -- FIXME: not yet supported
+      N.Jobs.Iterate (Wrapper'Access);
    end Iterate_Jobs;
 
    procedure Iterate_Partitions (N : Node; Process : not null access procedure (P : Partition)) is

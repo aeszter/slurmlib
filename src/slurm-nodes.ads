@@ -1,12 +1,13 @@
-with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Calendar;
 with Slurm.C_Types;
-with Slurm.Jobs; use Slurm.Jobs;
 with Slurm.Node_Properties; use Slurm.Node_Properties;
 with Slurm.Partitions; use Slurm.Partitions;
 with Slurm.Utils; use Slurm.Utils;
 with Slurm.Gres;
+with Ada.Containers.Ordered_Maps;
+with Ada.Containers.Ordered_Sets;
+with Slurm.Jobs;
 
 package Slurm.Nodes is
 
@@ -52,8 +53,8 @@ package Slurm.Nodes is
    function Get_Memory (N : Node) return String;
    function Get_Name (N : Node) return String;
    function Get_OS (N : Node) return String;
-   function Get_Owner (n : Node) return User_Name;
-
+   function Get_Owner (N : Node) return User_Name;
+   function Get_Partitions (N : Node) return String;
    function Get_Sockets (N : Node) return Positive;
    function Get_State (N : Node) return states;
    function Get_State (N : Node) return String;
@@ -78,7 +79,7 @@ package Slurm.Nodes is
    function Load_Per_Core (N : Node) return Load;
    function Mem_Percentage (N : Node) return Percent;
 
-   procedure Iterate_Jobs (N : Node; Process : not null access procedure (J : Job));
+   procedure Iterate_Jobs (N : Node; Process : not null access procedure (ID : Positive));
    procedure Iterate_Partitions (N : Node; Process : not null access procedure (P : Partition));
    procedure Iterate_GRES (N       : Node;
                            Process : not null access procedure (R : Slurm.Gres.Resource));
@@ -89,7 +90,12 @@ package Slurm.Nodes is
 
    function Get_Node (Collection : List; Name : String) return Node;
 
+   procedure Add_Jobs (From : Slurm.Jobs.List; To : in out Node);
+   procedure Add_Jobs (From : Slurm.Jobs.List; To : in out List);
+
 private
+
+   package Job_Lists is new ada.Containers.Ordered_Sets (Element_Type => Positive);
 
    type Node is record
       Architecture     : Unbounded_String;
@@ -111,20 +117,23 @@ private
       State            : Slurm.C_Types.uint32_t;
       OS               : Unbounded_String;
       Owner            : User_Name;
+      Partitions       : Unbounded_String;
       Reason           : Unbounded_String;
       Reason_Time      : Ada.Calendar.Time;
       Reason_User      : User_Name;
       Tmp_Total        : Gigs;
       Weight           : Natural;
       Tres             : Unbounded_String;
-      Version : Unbounded_String;
+      Version          : Unbounded_String;
+      Jobs : Job_Lists.Set;
 
    end record;
 
-   package Lists is new ada.Containers.Doubly_Linked_Lists (Element_Type => Node);
+   package Lists is new ada.Containers.Ordered_Maps (Element_Type => Node,
+                                                     Key_Type => Unbounded_String);
    type Cursor is new Lists.Cursor;
    type List is record
-      Container : Lists.List;
+      Container : Lists.Map;
    end record;
 
 end Slurm.Nodes;

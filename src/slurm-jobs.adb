@@ -435,7 +435,7 @@ package body Slurm.Jobs is
 
    procedure Append (Collection : in out List; Item : Job) is
    begin
-      Collection.Container.Append (Item);
+      Collection.Container.Insert (Get_ID (Item), Item);
    end Append;
 
    function Build_List (Buffer : aliased job_info_msg_ptr) return List is
@@ -447,7 +447,7 @@ package body Slurm.Jobs is
       Job_Ptr := Buffer.job_array;
       for I in 1 .. Buffer.record_count loop
          Init (J, Job_Ptr);
-         Result.Container.Append (J);
+         Result.Container.Insert (Get_ID (J), J);
          Increment (Job_Ptr);
       end loop;
       slurm_free_job_info_msg (Buffer);
@@ -534,16 +534,10 @@ package body Slurm.Jobs is
    end Get_ID;
 
    function Get_Job (Collection : List; ID : Natural) return Job is
-      Position : Cursor := First (Collection);
    begin
-      while Has_Element (Position)
-      loop
-         if Element (Position).ID = ID then
-            return Element (Position);
-         else
-            Next (Position);
-         end if;
-      end loop;
+      if Collection.Container.Contains (ID) then
+         return Collection.Container.Element (ID);
+      end if;
       raise Constraint_Error with "Job not found";
    end Get_Job;
 
@@ -552,9 +546,9 @@ package body Slurm.Jobs is
       return To_String (J.Name);
    end Get_Name;
 
-   function Get_Nodes (J : Job) return String is
+   function Get_Nodes (J : Job) return Slurm.Utils.String_Sets.Set is
    begin
-      return To_String (J.Nodes);
+      return J.Nodes;
    end Get_Nodes;
 
    function Get_Owner (J : Job) return User_Name is
@@ -629,6 +623,8 @@ package body Slurm.Jobs is
 
    procedure Get_Summary (Collection : List;
                           Jobs, Tasks : out State_Count) is
+      procedure Increment (Position : Cursor);
+
       procedure Increment (Position : Cursor) is
          J : Job := Element (Position);
       begin
@@ -682,6 +678,11 @@ package body Slurm.Jobs is
    begin
       return False; -- until we figure out what state is equivalent to sge's error state
    end Has_Error;
+
+   function Has_Node (J : Job; Nodename : String) return Boolean is
+   begin
+      return J.Nodes.Contains (To_Unbounded_String (Nodename));
+   end Has_Node;
 
    function Has_Share (J : Job) return Boolean is
    begin
@@ -745,7 +746,7 @@ package body Slurm.Jobs is
          end if;
          J.Group := To_User_Name (POSIX.To_String (Form_POSIX_String (gr_entry.all.gr_name)));
       end;
-      J.Nodes := Convert_String (Ptr.all.nodes);
+      J.Nodes := Slurm.Utils.To_String_Set (To_String (Ptr.all.nodes));
       J.Partition := Convert_String (Ptr.all.partition);
       J.Reservation := Convert_String (Ptr.all.resv_name);
       J.State_Desc := Convert_String (Ptr.all.state_desc);
