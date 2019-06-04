@@ -64,6 +64,24 @@ package body Slurm.Utils is
          return "";
    end To_String;
 
+   function To_String_Set (Source : String) return String_Sets.Set is
+      Result : String_Sets.Set := String_Sets.Empty_Set;
+      Last   : Integer := Source'First - 1;
+      Next   : Integer;
+   begin
+      while Last < Source'Last loop
+         Next := Ada.Strings.Fixed.Index (Source  => Source,
+                                          Pattern => ",",
+                                          From    => Last + 1);
+         if Next = 0 then
+            Next := Source'Last + 1;
+         end if;
+         Result.Include (To_Unbounded_String (Source (Last + 1 ..  Next - 1)));
+         Last := Next;
+      end loop;
+      return Result;
+   end To_String_Set;
+
    function To_User_Name (User : String) return User_Name is
       use Ada.Strings.Fixed;
    begin

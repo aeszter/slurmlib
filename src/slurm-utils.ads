@@ -4,6 +4,8 @@ with Interfaces.C.Strings; use Interfaces.C.Strings;
 with Slurm.C_Types;
 with Slurm.C_Types;
 with POSIX.C;
+with Ada.Containers;
+with Ada.Containers.Ordered_Sets;
 
 package Slurm.Utils is
    Version : String := "develop";
@@ -31,8 +33,8 @@ package Slurm.Utils is
 --     package String_Lists is
 --       new Ada.Containers.Doubly_Linked_Lists (Element_Type => Unbounded_String);
 --
---     package String_Sets is
---       new Ada.Containers.Ordered_Sets (Element_Type => Unbounded_String);
+   package String_Sets is
+     new Ada.Containers.Ordered_Sets (Element_Type => Unbounded_String);
 --
 --     package String_Pairs is
 --       new Ada.Containers.Ordered_Maps (Key_Type => Unbounded_String,
@@ -53,7 +55,8 @@ package Slurm.Utils is
 --
 --     function To_Hash_String (S : String) return Hash_String_Type;
 --
---  --     procedure To_String_List (Source  : String; Dest : out POSIX_String_List);
+--      procedure To_String_List (Source  : String; Dest : out POSIX_String_List);
+   function To_String_Set (Source  : String) return String_Sets.Set;
    function To_User_Name (User : String) return User_Name;
    function To_String (User : User_Name) return String;
    function To_String (Source : Interfaces.C.Strings.chars_ptr) return String;
