@@ -1,9 +1,9 @@
 with Ada.Calendar;
 with Ada.Containers;
-with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 with Slurm.Utils; use Slurm.Utils;
+with Ada.Containers.Ordered_Maps;
 
 package Slurm.Jobs is
 --      slurm_pid2jobid - For a given process ID on a node get the corresponding Slurm job ID.
@@ -308,13 +308,19 @@ package Slurm.Jobs is
    procedure Iterate (Collection : List;
                       Process    : not null access procedure (Position : Cursor));
    function Get_Alloc_Node (J : Job) return String;
+   function Get_Command (J : Job) return String;
+   function Has_Admin_Comment (J : Job) return Boolean;
+   function Get_Admin_Comment (J : Job) return String;
+   function Has_Comment (J : Job) return Boolean;
+   function Get_Comment (J : Job) return String;
    function Get_CPUs (J : Job) return Natural;
    function Get_Dependency (J : Job) return String;
    function Get_Gres (J : Job) return String;
    function Get_Group (J : Job) return User_Name;
    function Get_ID (J : Job) return Positive;
    function Get_Name (J : Job) return String;
-   function Get_Nodes (J : Job) return String;
+   function Get_Nodes (J : Job) return Slurm.Utils.String_Sets.Set;
+   function Has_Node (J : Job; Nodename : String) return Boolean;
    function Get_Owner (J : Job) return User_Name;
    function Get_Partition (J : Job) return String;
    function Get_Priority (J : Job) return Natural;
@@ -332,6 +338,12 @@ package Slurm.Jobs is
    function Get_State_Reason (J : Job) return state_reasons;
    function Get_Submission_Time (J : Job) return Ada.Calendar.Time;
    function Get_Tasks (J : Job) return Positive;
+   function Get_Std_In (J : Job) return String;
+   function Get_Std_Out (J : Job) return String;
+   function Get_Std_Err (J : Job) return String;
+   function Get_TRES_Request (J : Job) return String;
+   function Get_TRES_Allocated (J : Job) return String;
+   function Get_Working_Directory (J : Job) return String;
    function Has_Error (J : Job) return Boolean;
    function Is_Pending (J : Job) return Boolean;
    function Is_Running (J : Job) return Boolean;
@@ -351,6 +363,7 @@ package Slurm.Jobs is
 private
 
    type Job is record
+      Comment, Admin_Comment : Unbounded_String;
       Alloc_Node  : Unbounded_String;
       Gres        : Unbounded_String;
       ID          : Positive;
@@ -371,16 +384,20 @@ private
       Tasks           : Natural;
       CPUs            : Natural;
       Dependency      : Unbounded_String;
-      Nodes           : Unbounded_String;
+      Nodes           : Slurm.Utils.String_Sets.Set;
       Partition       : Unbounded_String;
       Reservation     : Unbounded_String;
-
+      Std_In, Std_Err, Std_Out : Unbounded_String;
+      Directory                : Unbounded_String;
+      Command                  : Unbounded_String;
+      TRES_Request, TRES_Allocated : Unbounded_String;
    end record;
 
-   package Lists is new ada.Containers.Doubly_Linked_Lists (Element_Type => Job);
+   package Lists is new ada.Containers.Ordered_Maps (Element_Type => Job,
+                                                    Key_Type => Positive);
    type Cursor is new Lists.Cursor;
    type List is record
-      Container : Lists.List;
+      Container : Lists.Map;
    end record;
 
 end Slurm.Jobs;
