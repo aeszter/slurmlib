@@ -8,7 +8,7 @@ with Ada.Containers;
 with Ada.Containers.Ordered_Sets;
 
 package Slurm.Utils is
-   Version : String := "develop";
+   Version : String := "v0.3";
    type Tri_State is (False, True, Undecided);
    type User_Name is new String (1 .. 8);
 
