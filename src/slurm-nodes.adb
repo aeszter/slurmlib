@@ -281,7 +281,7 @@ package body Slurm.Nodes is
       return To_String (N.Real_Memory);
    end Get_Memory;
 
-   function Get_Name (N : Node) return String is
+   function Get_Name (N : Node) return Node_Name is
    begin
       return To_String (N.Name);
    end Get_Name;

@@ -32,6 +32,7 @@ package Slurm.Nodes is
    function Element (Position : Cursor) return Node;
    function Has_Element (Position : Cursor) return Boolean;
    function First (Collection : List) return Cursor;
+   procedure Next (Position : in out Cursor);
    procedure Append (Collection : in out List; Item : Node);
    procedure Iterate (Collection : List;
                       Process    : not null access procedure (Position : Cursor));
@@ -51,7 +52,7 @@ package Slurm.Nodes is
    function Get_Features (N : Node) return String;
    function Get_Free_Memory (N : Node) return String;
    function Get_Memory (N : Node) return String;
-   function Get_Name (N : Node) return String;
+   function Get_Name (N : Node) return Node_Name;
    function Get_OS (N : Node) return String;
    function Get_Owner (N : Node) return User_Name;
    function Get_Partitions (N : Node) return String;
