@@ -1,5 +1,7 @@
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Slurm.Utils; use Slurm.Utils;
+with Ada.Containers;
+with Ada.Containers.Ordered_Sets;
 
 package Slurm.Node_Properties is
    type Fixed is delta 0.01 digits 6 range 0.0 .. 1000.0;
@@ -9,7 +11,12 @@ package Slurm.Node_Properties is
    pragma Inline ("<");
    overriding function "=" (Left, Right : Node_Name) return Boolean;
    pragma Inline ("=");
-   function To_String (Source : Node_Name) return String;
+   overriding function To_String (Source : Node_Name) return String;
+
+   package Name_Sets is
+     new Ada.Containers.Ordered_Sets (Element_Type => Node_Name);
+   subtype Name_Set is Name_Sets.Set;
+   function To_Name_Set (Source : String) return Name_Set;
 
    type Set_Of_Properties is private;
 

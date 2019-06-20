@@ -115,12 +115,10 @@ package body Slurm.Nodes is
       use Slurm.Jobs;
       procedure Attach_Job_To_Node (Position : Jobs.Cursor);
 
-      The_Name : String := Get_Name (To);
-
       procedure Attach_Job_To_Node (Position : Jobs.Cursor) is
          J : Job := Element (Position);
       begin
-         if Has_Node (J, The_Name) then
+         if Has_Node (J, Get_Name (To)) then
             To.Jobs.Include (Get_ID (J));
          end if;
       end Attach_Job_To_Node;
@@ -131,20 +129,22 @@ package body Slurm.Nodes is
 
    procedure Add_Jobs (From : Slurm.Jobs.List; To : in out List) is
       use Slurm.Jobs;
-      procedure Add_One_Job (Key : Unbounded_String; N : in out Node);
+      procedure Add_One_Job (Key : Node_Name; N : in out Node);
       procedure Attach_Job_To_Nodes (Position : Jobs.Cursor);
-      procedure Attach_Job (Position : String_Sets.Cursor);
+      procedure Attach_Job (Position : Name_Sets.Cursor);
 
       ID : Natural;
+      CPUs : Natural;
 
-      procedure Add_One_Job (Key : Unbounded_String; N : in out Node) is
+      procedure Add_One_Job (Key : Node_Name; N : in out Node) is
          pragma Unreferenced (Key);
       begin
          N.Jobs.Include (ID);
+         N.Used_CPUs := N.Used_CPUs + CPUs;
       end Add_One_Job;
 
-      procedure Attach_Job (Position : String_Sets.Cursor) is
-         The_Node : Lists.Cursor := To.Container.Find (String_Sets.Element (Position));
+      procedure Attach_Job (Position : Name_Sets.Cursor) is
+         The_Node : Lists.Cursor := To.Container.Find (Name_Sets.Element (Position));
       begin
          To.Container.Update_Element (Position => The_Node,
                                       Process  => Add_One_Job'Access);
@@ -152,9 +152,10 @@ package body Slurm.Nodes is
 
       procedure Attach_Job_To_Nodes (Position : Jobs.Cursor) is
          J : Job := Element (Position);
-         Nodes : String_Sets.Set := Get_Nodes (J);
+         Nodes : Name_Set := Get_Nodes (J);
       begin
          ID := Get_ID (J);
+         CPUs := Get_Tasks_Per_Node (J);
          Nodes.Iterate (Attach_Job'Access);
       end Attach_Job_To_Nodes;
 
@@ -163,8 +164,9 @@ package body Slurm.Nodes is
    end Add_Jobs;
 
    procedure Append (Collection : in out List; Item : Node) is
+      use Lists;
    begin
-      Collection.Container.Insert (Item.Name, Item);
+      Collection.Container.Include (Item.Name, Item);
    end Append;
 
    function Build_List (Buffer : aliased node_info_msg_ptr) return List is
@@ -176,7 +178,7 @@ package body Slurm.Nodes is
       Node_Ptr := Buffer.node_array;
       for I in 1 .. Buffer.record_count loop
          Init (N, Node_Ptr);
-         Result.Container.Insert (N.Name, N);
+         Result.Container.Include (N.Name, N);
          Increment (Node_Ptr);
       end loop;
       slurm_free_node_info_msg (Buffer);
@@ -271,6 +273,11 @@ package body Slurm.Nodes is
       return To_String (N.Features);
    end Get_Features;
 
+   function Get_Free_CPUs (N : Node) return Natural is
+   begin
+      return N.CPUs - N.Used_CPUs;
+   end Get_Free_CPUs;
+
    function Get_Free_Memory (N : Node) return String is
    begin
       return To_String (N.Free_Memory);
@@ -283,7 +290,7 @@ package body Slurm.Nodes is
 
    function Get_Name (N : Node) return Node_Name is
    begin
-      return To_String (N.Name);
+      return N.Name;
    end Get_Name;
 
    function Get_Node (Collection : List; Name : String) return Node is
@@ -314,6 +321,11 @@ package body Slurm.Nodes is
    begin
       return To_String (N.Partitions);
    end Get_Partitions;
+
+   function Get_Properties (N : Node) return Set_Of_Properties is
+   begin
+      return N.Properties;
+   end Get_Properties;
 
    function Get_Reason (N : Node) return String is
    begin
@@ -365,6 +377,11 @@ package body Slurm.Nodes is
       return To_String (N.Tres);
    end Get_TRES;
 
+   function Get_Used_CPUs (N : Node) return Natural is
+   begin
+      return N.Used_CPUs;
+   end Get_Used_CPUs;
+
    function Get_Version (N : Node) return String is
    begin
       return To_String (N.Version);
@@ -398,7 +415,7 @@ package body Slurm.Nodes is
       N.GRES := Gres.Init (To_String (Ptr.all.gres));
       N.GRES_Drain := Gres.Init (To_String (Ptr.all.gres_drain));
       N.GRES_Used := Gres.Init (To_String (Ptr.all.gres_used));
-      N.Name := Convert_String (Ptr.all.name);
+      N.Name := Node_Name (Convert_String (Ptr.all.name));
       N.State := Ptr.all.node_state;
       N.OS := Convert_String (Ptr.all.os);
       begin
@@ -573,5 +590,11 @@ package body Slurm.Nodes is
    begin
       return 100 - Percent (100 * N.Free_Memory / N.Real_Memory);
    end Mem_Percentage;
+
+   overriding
+   procedure Next (Position : in out Cursor) is
+   begin
+      Lists.Next (Lists.Cursor (Position));
+   end Next;
 
 end Slurm.Nodes;

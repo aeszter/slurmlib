@@ -546,7 +546,7 @@ package body Slurm.Jobs is
       return To_String (J.Name);
    end Get_Name;
 
-   function Get_Nodes (J : Job) return Slurm.Utils.String_Sets.Set is
+   function Get_Nodes (J : Job) return Slurm.Node_Properties.Name_Set is
    begin
       return J.Nodes;
    end Get_Nodes;
@@ -643,6 +643,26 @@ package body Slurm.Jobs is
       return J.Tasks;
    end Get_Tasks;
 
+   function Get_Tasks_Per_Board (J : Job) return Positive is
+   begin
+      return J.Tasks_Per_Board;
+   end Get_Tasks_Per_Board;
+
+   function Get_Tasks_Per_Core (J : Job) return Positive is
+   begin
+      return J.Tasks_Per_Core;
+   end Get_Tasks_Per_Core;
+
+   function Get_Tasks_Per_Node (J : Job) return Positive is
+   begin
+      return J.Tasks_Per_Node;
+   end Get_Tasks_Per_Node;
+
+   function Get_Tasks_Per_Socket (J : Job) return Positive is
+   begin
+      return J.Tasks_Per_Socket;
+   end Get_Tasks_Per_Socket;
+
    function Get_TRES_Allocated (J : Job) return String is
    begin
       return To_String (J.TRES_Allocated);
@@ -679,9 +699,9 @@ package body Slurm.Jobs is
       return False; -- until we figure out what state is equivalent to sge's error state
    end Has_Error;
 
-   function Has_Node (J : Job; Nodename : String) return Boolean is
+   function Has_Node (J : Job; Nodename : Slurm.Node_Properties.Node_Name) return Boolean is
    begin
-      return J.Nodes.Contains (To_Unbounded_String (Nodename));
+      return J.Nodes.Contains (Nodename);
    end Has_Node;
 
    function Has_Share (J : Job) return Boolean is
@@ -734,6 +754,10 @@ package body Slurm.Jobs is
       J.State := Enum_To_State (Ptr.all.job_state and JOB_STATE_BASE);
       J.Submission_Time := Convert_Time (Ptr.all.submit_time);
       J.Tasks := Integer (Ptr.all.num_tasks);
+      J.Tasks_Per_Core := Natural (Ptr.all.ntasks_per_core);
+      J.Tasks_Per_Node := Natural (Ptr.all.ntasks_per_node);
+      J.Tasks_Per_Socket := Natural (Ptr.all.ntasks_per_socket);
+      J.Tasks_Per_Board := Natural (Ptr.all.ntasks_per_board);
       J.CPUs := Integer (Ptr.all.num_cpus);
       J.Dependency := Convert_String (Ptr.all.dependency);
       declare
@@ -746,7 +770,7 @@ package body Slurm.Jobs is
          end if;
          J.Group := To_User_Name (POSIX.To_String (Form_POSIX_String (gr_entry.all.gr_name)));
       end;
-      J.Nodes := Slurm.Utils.To_String_Set (To_String (Ptr.all.nodes));
+      J.Nodes := Slurm.Node_Properties.To_Name_Set (To_String (Ptr.all.nodes));
       J.Partition := Convert_String (Ptr.all.partition);
       J.Reservation := Convert_String (Ptr.all.resv_name);
       J.State_Desc := Convert_String (Ptr.all.state_desc);

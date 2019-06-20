@@ -61,9 +61,9 @@ private
       Available_Nodes, Total_Nodes,
       Draining_Nodes,
       Offline_Nodes, Used_Nodes : Countable_Sets.Set;
-      Available_Cores, Total_Cores,
-      Draining_Cores,
-      Offline_Cores, Used_Cores : Countable_Map;
+      Available_CPUs, Total_CPUs,
+      Draining_CPUs,
+      Offline_CPUs, Used_CPUs : Countable_Map;
 
       Properties : Set_Of_Properties;
    end record;

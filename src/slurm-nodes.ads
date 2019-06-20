@@ -49,6 +49,8 @@ package Slurm.Nodes is
    function Get_Cores_Per_Socket (N : Node) return Positive;
 
    function Get_CPUs (N : Node) return Positive;
+   function Get_Free_CPUs (N : Node) return Natural;
+   function Get_Used_CPUs (N : Node) return Natural;
    function Get_Features (N : Node) return String;
    function Get_Free_Memory (N : Node) return String;
    function Get_Memory (N : Node) return String;
@@ -68,6 +70,7 @@ package Slurm.Nodes is
    function Get_TRES (N : Node) return String;
    function Get_Version (N : Node) return String;
    function Get_Weight (N : Node) return Integer;
+   function Get_Properties (N : Node) return Set_Of_Properties;
 
    function Is_Draining (N : Node) return Boolean;
    function Is_Completing (N : Node) return Boolean;
@@ -106,6 +109,7 @@ private
       Sockets          : Natural;
       Threads_Per_Core : Natural;
       CPUs             : Natural;
+      Used_CPUs        : Natural := 0;
       Start_Time       : Ada.Calendar.Time;
       Load             : Usage_Number;
       Free_Memory      : Gigs;
@@ -114,7 +118,7 @@ private
       GRES,
       GRES_Drain,
       GRES_Used        : Slurm.Gres.List;
-      Name             : Unbounded_String;
+      Name             : Node_Name;
       State            : Slurm.C_Types.uint32_t;
       OS               : Unbounded_String;
       Owner            : User_Name;
@@ -126,12 +130,13 @@ private
       Weight           : Natural;
       Tres             : Unbounded_String;
       Version          : Unbounded_String;
-      Jobs : Job_Lists.Set;
+      Jobs             : Job_Lists.Set;
+      Properties       : Set_Of_Properties;
 
    end record;
 
    package Lists is new ada.Containers.Ordered_Maps (Element_Type => Node,
-                                                     Key_Type => Unbounded_String);
+                                                     Key_Type => Node_Name);
    type Cursor is new Lists.Cursor;
    type List is record
       Container : Lists.Map;

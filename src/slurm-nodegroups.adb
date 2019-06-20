@@ -2,6 +2,16 @@ with Slurm.Nodes; use Slurm.Nodes;
 
 package body Slurm.Nodegroups is
 
+   function "=" (Left : Nodegroup; Right : Slurm.Nodes.Node) return Boolean is
+   begin
+      return Left.Properties = Get_Properties (Right);
+   end "=";
+
+   function "=" (Left : Slurm.Nodes.Node; Right : Nodegroup) return Boolean is
+   begin
+      return Right = Left;
+   end "=";
+
    overriding function Copy
      (Source : Summarized_List)
       return Summarized_List
@@ -108,6 +118,35 @@ package body Slurm.Nodegroups is
       return  Natural (G.Used_Nodes.Length);
    end Get_Used_Nodes;
 
+   overriding procedure Include
+     (Container : in out Countable_Map;
+      Key       : Node_Name;
+      New_Item  : Natural) is
+      use Countable_Maps;
+      procedure Take_Maximum (Key : Node_Name; Element : in out Natural);
+
+      Previous : Countable_Maps.Cursor := Find (Container => Container,
+                                                Key       => Key);
+      procedure Take_Maximum (Key : Node_Name; Element : in out Natural) is
+         pragma Unreferenced (Key);
+      begin
+         if New_Item > Element then
+            Element := New_Item;
+         end if;
+      end Take_Maximum;
+
+   begin
+      if Previous = No_Element then
+         Insert (Container => Container,
+                 Key       => Key,
+                 New_Item  => New_Item);
+      else
+         Update_Element (Container => Container,
+                         Position  => Previous,
+                         Process   => Take_Maximum'Access);
+      end if;
+   end Include;
+
    procedure Iterate
      (Collection : Summarized_List;
       Process    : not null access procedure (G : Nodegroup))
@@ -155,33 +194,34 @@ package body Slurm.Nodegroups is
             Group_List.Summary (total).Include (Key      => Get_Name (N),
                                                 New_Item => Get_CPUs (N));
             if Is_Not_Responding (N) then
-               G.Offline_Cores.Include (Key => Get_Name (N),
+               G.Offline_CPUs.Include (Key => Get_Name (N),
                                    New_Item => Get_CPUs (N));
                G.Offline_Nodes.Include (Get_Name (N));
                Group_List.Summary (offline).Include (Key      => Get_Name (N),
                                                      New_Item => Get_CPUs (N));
             elsif Is_Draining (N) then
-               G.Draining_Cores.Include (Key      => Get_Name (N),
-                                         New_Item => Get_CPUs (N));
+               G.Draining_CPUs.Include (Key      => Get_Name (N),
+                                        New_Item => Get_CPUs (N));
                G.Draining_Nodes.Include (Get_Name (N));
                Group_List.Summary (disabled).Include (Key      => Get_Name (N),
                                                 New_Item => Get_CPUs (N));
             else
-               if Get_Used_Cores (N) > 0 then
+               if Get_Used_CPUs (N) > 0 then
                   G.Used_Nodes.Include (Get_Name (N));
-                  G.Used_Cores := G.Used_Cores + Get_Used_Core (N);
+                  G.Used_CPUs.Include (Key => Get_Name (N),
+                                       New_Item => Get_Used_CPUs (N));
                   Group_List.Summary (used).Include (Key      => Get_Name (N),
-                                                     New_Item => Get_Used_Cores (N));
+                                                     New_Item => Get_Used_CPUs (N));
                end if;
-               G.Available_Cores.Include (Key      => Get_Name (N),
-                                               New_Item => Get_Free_Cores (N));
-               if Get_Used_Cores (N) = 0 and then
-                 Get_Free_Cores (N) = Get_CPUs (N)
+               G.Available_CPUs.Include (Key      => Get_Name (N),
+                                               New_Item => Get_Free_CPUs (N));
+               if Get_Used_CPUs (N) = 0 and then
+                 Get_Free_CPUs (N) = Get_CPUs (N)
                then
                   G.Available_Nodes.Include (Get_Name (N));
                end if;
                Group_List.Summary (available).Include (Key      => Get_Name (N),
-                                                       New_Item => Get_Free_Cores (N));
+                                                       New_Item => Get_Free_CPUs (N));
             end if;
          end;
          --  Advance
@@ -191,6 +231,27 @@ package body Slurm.Nodegroups is
       Group_List.Append (G);
       return Group_List;
    end Load;
+
+   function New_Nodegroup (Template : Slurm.Nodes.Node) return Nodegroup is
+      G : Nodegroup;
+   begin
+      G.Properties := Get_Properties (Template);
+      return G;
+   end New_Nodegroup;
+
+   function Sum (Over : Countable_Map) return Natural is
+      procedure Count (Position : Countable_Maps.Cursor);
+      Total : Natural := 0;
+
+      procedure Count (Position : Countable_Maps.Cursor) is
+      begin
+         Total := Total + Countable_Maps.Element (Position);
+      end Count;
+
+   begin
+      Over.Iterate (Count'Access);
+      return Total;
+   end Sum;
 
    function To_String (Source : State) return String is
    begin
