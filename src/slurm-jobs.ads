@@ -315,6 +315,7 @@ package Slurm.Jobs is
    function Has_Comment (J : Job) return Boolean;
    function Get_Comment (J : Job) return String;
    function Get_CPUs (J : Job) return Natural;
+   function Get_Node_Number (J : Job) return Natural;
    function Get_Dependency (J : Job) return String;
    function Get_Gres (J : Job) return String;
    function Get_Group (J : Job) return User_Name;
@@ -388,6 +389,7 @@ private
       Submission_Time : Ada.Calendar.Time;
       Tasks           : Natural;
       CPUs            : Natural;
+      Node_Number     : Natural;
       Dependency      : Unbounded_String;
       Nodes           : Slurm.Node_Properties.Name_Set;
       Partition       : Unbounded_String;

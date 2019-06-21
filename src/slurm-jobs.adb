@@ -546,6 +546,11 @@ package body Slurm.Jobs is
       return To_String (J.Name);
    end Get_Name;
 
+   function Get_Node_Number (J : Job) return Natural is
+   begin
+      return J.Node_Number;
+   end Get_Node_Number;
+
    function Get_Nodes (J : Job) return Slurm.Node_Properties.Name_Set is
    begin
       return J.Nodes;
@@ -759,6 +764,7 @@ package body Slurm.Jobs is
       J.Tasks_Per_Socket := Natural (Ptr.all.ntasks_per_socket);
       J.Tasks_Per_Board := Natural (Ptr.all.ntasks_per_board);
       J.CPUs := Integer (Ptr.all.num_cpus);
+      J.Node_Number := Integer (Ptr.all.num_nodes);
       J.Dependency := Convert_String (Ptr.all.dependency);
       declare
          gr_entry : group_ptr;

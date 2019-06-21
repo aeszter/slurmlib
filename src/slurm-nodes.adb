@@ -155,7 +155,7 @@ package body Slurm.Nodes is
          Nodes : Name_Set := Get_Nodes (J);
       begin
          ID := Get_ID (J);
-         CPUs := Get_Tasks_Per_Node (J);
+         CPUs := Get_CPUs (J) / Get_Node_Number (J);
          Nodes.Iterate (Attach_Job'Access);
       end Attach_Job_To_Nodes;
 
