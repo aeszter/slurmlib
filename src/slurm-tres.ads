@@ -2,9 +2,9 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Containers;
 with Ada.Containers.Ordered_Sets;
 
-package Slurm.Gres is
+package Slurm.Tres is
    type Resource is record
-      Category, Name : Unbounded_String;
+      Name   : Unbounded_String;
       Number : Positive;
    end record;
 
@@ -16,10 +16,9 @@ package Slurm.Gres is
 
    function Init (Source : String) return List;
    function New_Resource (Source : String) return Resource;
-   function To_String (Item : Resource) return String;
    function "<" (Left, Right : List) return Boolean;
    function ">" (Left, Right : List) return Boolean;
 
 private
 
-end Slurm.Gres;
+end Slurm.Tres;

@@ -6,6 +6,7 @@ with Slurm.Errors;
 with Slurm.General;
 with Slurm.Utils; use Slurm.Utils;
 with Ada.Calendar;
+with Slurm.Tres; use Slurm.Tres;
 
 package body Slurm.Nodes is
 
@@ -265,17 +266,17 @@ package body Slurm.Nodes is
 
    function Get_CPUs (N : Node) return Positive is
    begin
-      return N.CPUs;
+      return Get_CPUs (N.Properties);
    end Get_CPUs;
 
    function Get_Features (N : Node) return String is
    begin
-      return To_String (N.Features);
+      return Get_Features (N.Properties);
    end Get_Features;
 
    function Get_Free_CPUs (N : Node) return Natural is
    begin
-      return N.CPUs - N.Used_CPUs;
+      return Get_CPUs (N) - N.Used_CPUs;
    end Get_Free_CPUs;
 
    function Get_Free_Memory (N : Node) return String is
@@ -285,7 +286,7 @@ package body Slurm.Nodes is
 
    function Get_Memory (N : Node) return String is
    begin
-      return To_String (N.Real_Memory);
+      return To_String (Get_Memory (N.Properties));
    end Get_Memory;
 
    function Get_Name (N : Node) return Node_Name is
@@ -372,9 +373,9 @@ package body Slurm.Nodes is
       return N.Tmp_Total;
    end Get_Tmp_Total;
 
-   function Get_TRES (N : Node) return String is
+   function Get_TRES (N : Node) return Slurm.Tres.List is
    begin
-      return To_String (N.Tres);
+      return Get_TRES (N.Properties);
    end Get_TRES;
 
    function Get_Used_CPUs (N : Node) return Natural is
@@ -410,9 +411,7 @@ package body Slurm.Nodes is
          when Constraint_Error =>
             N.Free_Memory := Gigs (0);
       end;
-      N.CPUs := Natural (Ptr.all.cpus);
-      N.Features := Convert_String (Ptr.all.features);
-      N.GRES := Gres.Init (To_String (Ptr.all.gres));
+      Init_CPUs (N.Properties, Natural (Ptr.all.cpus));
       N.GRES_Drain := Gres.Init (To_String (Ptr.all.gres_drain));
       N.GRES_Used := Gres.Init (To_String (Ptr.all.gres_used));
       N.Name := Node_Name (Convert_String (Ptr.all.name));
@@ -424,12 +423,6 @@ package body Slurm.Nodes is
             -- even though this violates the specs
          when others =>
             N.Owner := To_User_Name ("");
-      end;
-      begin
-         N.Real_Memory := MiB_To_Gigs (Ptr.all.real_memory);
-      exception
-         when others =>
-            N.Real_Memory := Gigs (0);
       end;
       N.Reason := Convert_String (Ptr.all.reason);
       if N.Reason = "" then
@@ -449,8 +442,16 @@ package body Slurm.Nodes is
             N.Tmp_Total := Gigs (0);
       end;
       N.Weight := Natural (Ptr.all.weight);
-      N.Tres := Convert_String (Ptr.all.tres_fmt_str);
       N.Version := Convert_String (Ptr.all.version);
+      Init_GRES (N.Properties, Gres.Init (To_String (Ptr.all.gres)));
+      Init_TRES (N.Properties, Tres.Init (To_String (Ptr.all.tres_fmt_str)));
+      begin
+         Init_Memory (N.Properties, MiB_To_Gigs (Ptr.all.real_memory));
+      exception
+         when others =>
+            Init_Memory (N.Properties, Gigs (0));
+      end;
+      Init_Features (N.Properties, To_String (Ptr.all.features));
    end Init;
 
    function Is_Completing (N : Node) return Boolean is
@@ -502,19 +503,12 @@ package body Slurm.Nodes is
 
    procedure Iterate_GRES (N       : Node;
                            Process : not null access procedure (R : Slurm.Gres.Resource)) is
-      procedure Wrapper (Position : Slurm.Gres.Lists.Cursor);
-
-      procedure Wrapper (Position : Slurm.Gres.Lists.Cursor) is
-      begin
-         Process (Slurm.Gres.Lists.Element (Position));
-      end Wrapper;
-
    begin
-      N.GRES.Iterate (Wrapper'Access);
+      Iterate_GRES (N.Properties, Process);
    end Iterate_GRES;
 
    procedure Iterate_GRES_Drain (N       : Node;
-                           Process : not null access procedure (R : Slurm.Gres.Resource)) is
+                                 Process : not null access procedure (R : Slurm.Gres.Resource)) is
       procedure Wrapper (Position : Slurm.Gres.Lists.Cursor);
 
       procedure Wrapper (Position : Slurm.Gres.Lists.Cursor) is
@@ -527,7 +521,7 @@ package body Slurm.Nodes is
    end Iterate_GRES_Drain;
 
    procedure Iterate_GRES_Used (N       : Node;
-                           Process : not null access procedure (R : Slurm.Gres.Resource)) is
+                                 Process : not null access procedure (R : Slurm.Gres.Resource)) is
       procedure Wrapper (Position : Slurm.Gres.Lists.Cursor);
 
       procedure Wrapper (Position : Slurm.Gres.Lists.Cursor) is
@@ -583,12 +577,12 @@ package body Slurm.Nodes is
 
    function Load_Per_Core (N : Node) return Load is
    begin
-      return Load (N.Load) / N.CPUs;
+      return Load (N.Load) / Get_CPUs (N);
    end Load_Per_Core;
 
    function Mem_Percentage (N : Node) return Percent is
    begin
-      return 100 - Percent (100 * N.Free_Memory / N.Real_Memory);
+      return 100 - Percent (100 * N.Free_Memory / Get_Memory (N.Properties));
    end Mem_Percentage;
 
    overriding

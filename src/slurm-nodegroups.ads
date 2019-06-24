@@ -1,9 +1,11 @@
-with Ada.Containers.Doubly_Linked_Lists;
 with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Ordered_Sets;
 
 with Slurm.Node_Properties; use Slurm.Node_Properties;
 with Slurm.Nodes;
+with Slurm.Gres;
+with Slurm.Utils; use Slurm.Utils;
+with Slurm.Tres;
 
 package Slurm.Nodegroups is
    type Nodegroup is private;
@@ -33,7 +35,7 @@ package Slurm.Nodegroups is
    procedure Iterate_Summary (Process : not null access procedure (Item : State));
    function Get_Summary (List : Summarized_List; From : State) return Natural;
 
-   function New_Nodegroup (Template : Slurm.Nodes.Node) return Nodegroup;
+   function New_Nodegroup (Properties : Set_Of_Properties) return Nodegroup;
    function "=" (Left : Nodegroup; Right : Slurm.Nodes.Node) return Boolean;
    function "=" (Left : Slurm.Nodes.Node; Right : Nodegroup) return Boolean;
 
@@ -49,12 +51,11 @@ package Slurm.Nodegroups is
    function Get_Used_Cores (G : Nodegroup) return Natural;
    function Get_Drained_Cores (G : Nodegroup) return Natural;
 
-   function Get_Network (G : Nodegroup) return String;
-   function Get_GPU (G : Nodegroup) return String;
-   function Get_GPU_Memory (G : Nodegroup) return String;
-   function Get_Memory (G : Nodegroup) return String;
-   function Get_CPU_Model (G : Nodegroup) return String;
+   function Get_Memory (G : Nodegroup) return Gigs;
    function Get_CPUs (G : Nodegroup) return Natural;
+   function Get_GRES (G : Nodegroup) return Slurm.Gres.List;
+   function Get_TRES (G : Nodegroup) return Slurm.Tres.List;
+   function Get_Features (G : Nodegroup) return String;
 
 private
    type Nodegroup is record
@@ -68,9 +69,10 @@ private
       Properties : Set_Of_Properties;
    end record;
 
-   package Lists is new Ada.Containers.Doubly_Linked_Lists (Element_Type => Nodegroup);
+   package Lists is new Ada.Containers.Ordered_Maps (Element_Type => Nodegroup,
+                                                    Key_Type => Set_Of_Properties);
 
-   type Summarized_List is new Lists.List with
+   type Summarized_List is new Lists.Map with
    record
      Summary : State_Count;
    end record;

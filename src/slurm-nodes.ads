@@ -8,6 +8,7 @@ with Slurm.Gres;
 with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Ordered_Sets;
 with Slurm.Jobs;
+with Slurm.Tres;
 
 package Slurm.Nodes is
 
@@ -67,7 +68,7 @@ package Slurm.Nodes is
    function Get_Start_Time (N : Node) return Ada.Calendar.Time;
    function Get_Threads_Per_Core (N : Node) return Positive;
    function Get_Tmp_Total (N : Node) return Gigs;
-   function Get_TRES (N : Node) return String;
+   function Get_TRES (N : Node) return Slurm.Tres.List;
    function Get_Version (N : Node) return String;
    function Get_Weight (N : Node) return Integer;
    function Get_Properties (N : Node) return Set_Of_Properties;
@@ -90,7 +91,7 @@ package Slurm.Nodes is
    procedure Iterate_GRES_Drain (N       : Node;
                                  Process : not null access procedure (R : Slurm.Gres.Resource));
    procedure Iterate_GRES_Used (N       : Node;
-                                Process : not null access procedure (R : Slurm.Gres.Resource));
+                                 Process : not null access procedure (R : Slurm.Gres.Resource));
 
    function Get_Node (Collection : List; Name : String) return Node;
 
@@ -108,14 +109,10 @@ private
       Cores_Per_Socket : Natural;
       Sockets          : Natural;
       Threads_Per_Core : Natural;
-      CPUs             : Natural;
       Used_CPUs        : Natural := 0;
       Start_Time       : Ada.Calendar.Time;
       Load             : Usage_Number;
       Free_Memory      : Gigs;
-      Real_Memory      : Gigs;
-      Features         : Unbounded_String;
-      GRES,
       GRES_Drain,
       GRES_Used        : Slurm.Gres.List;
       Name             : Node_Name;
@@ -128,7 +125,6 @@ private
       Reason_User      : User_Name;
       Tmp_Total        : Gigs;
       Weight           : Natural;
-      Tres             : Unbounded_String;
       Version          : Unbounded_String;
       Jobs             : Job_Lists.Set;
       Properties       : Set_Of_Properties;

@@ -1,4 +1,7 @@
+with Slurm.Jobs;
 with Slurm.Nodes; use Slurm.Nodes;
+with Slurm.Utils; use Slurm.Utils;
+with Slurm.Tres;
 
 package body Slurm.Nodegroups is
 
@@ -17,15 +20,13 @@ package body Slurm.Nodegroups is
       return Summarized_List
    is
    begin
-      return (Lists.Copy (Lists.List (Source)) with
+      return (Lists.Copy (Lists.Map (Source)) with
         Summary => Source.Summary);
    end Copy;
 
    function Get_Available_Cores (G : Nodegroup) return Natural is
-      pragma Unreferenced (G);
    begin
-      --        return g.Available_Cores;
-      return 0;
+      return  Sum (G.Available_CPUs);
    end Get_Available_Cores;
 
    function Get_Available_Nodes (G : Nodegroup) return Natural is
@@ -33,20 +34,14 @@ package body Slurm.Nodegroups is
       return Natural (G.Available_Nodes.Length);
    end Get_Available_Nodes;
 
-   function Get_CPU_Model (G : Nodegroup) return String is
-   begin
-      return Get_CPU_Model (G.Properties);
-   end Get_CPU_Model;
-
    function Get_CPUs (G : Nodegroup) return Natural is
    begin
       return Get_CPUs (G.Properties);
    end Get_CPUs;
 
    function Get_Drained_Cores (G : Nodegroup) return Natural is
-      pragma Unreferenced (G);
    begin
-      return 0;
+      return  Sum (G.Draining_CPUs);
    end Get_Drained_Cores;
 
    function Get_Drained_Nodes (G : Nodegroup) return Natural is
@@ -54,31 +49,24 @@ package body Slurm.Nodegroups is
       return  Natural (G.Draining_Nodes.Length);
    end Get_Drained_Nodes;
 
-   function Get_GPU (G : Nodegroup) return String is
+   function Get_Features (G : Nodegroup) return String is
    begin
-      return Get_GPU (G.Properties);
-   end Get_GPU;
+      return Get_Features (G.Properties);
+   end Get_Features;
 
-   function Get_GPU_Memory (G : Nodegroup) return String is
+   function Get_GRES (G : Nodegroup) return Slurm.Gres.List is
    begin
-      return Get_GPU_Memory (G.Properties);
-   end Get_GPU_Memory;
+      return Get_GRES (G.Properties);
+   end Get_GRES;
 
-   function Get_Memory (G : Nodegroup) return String is
+   function Get_Memory (G : Nodegroup) return Gigs is
    begin
       return Get_Memory (G.Properties);
    end Get_Memory;
 
-   function Get_Network (G : Nodegroup) return String is
-   begin
-      return Get_Network (G.Properties);
-   end Get_Network;
-
    function Get_Offline_Cores (G : Nodegroup) return Natural is
-      pragma Unreferenced (G);
    begin
-      return 0;
-
+      return  Sum (G.Offline_CPUs);
    end Get_Offline_Cores;
 
    function Get_Offline_Nodes (G : Nodegroup) return Natural is
@@ -96,10 +84,8 @@ package body Slurm.Nodegroups is
    end Get_Summary;
 
    function Get_Total_Cores (G : Nodegroup) return Natural is
-      pragma Unreferenced (G);
    begin
---        return g.Total_Cores;
-      return 0;
+      return  Sum (G.Total_CPUs);
    end Get_Total_Cores;
 
    function Get_Total_Nodes (G : Nodegroup) return Natural is
@@ -107,10 +93,14 @@ package body Slurm.Nodegroups is
       return Natural (G.Total_Nodes.Length);
    end Get_Total_Nodes;
 
-   function Get_Used_Cores (G : Nodegroup) return Natural is
-      pragma Unreferenced (G);
+   function Get_TRES (G : Nodegroup) return Slurm.Tres.List is
    begin
-      return 0;
+      return Get_TRES (G.Properties);
+   end Get_TRES;
+
+   function Get_Used_Cores (G : Nodegroup) return Natural is
+   begin
+      return Sum (G.Used_CPUs);
    end Get_Used_Cores;
 
    function Get_Used_Nodes (G : Nodegroup) return Natural is
@@ -169,73 +159,75 @@ package body Slurm.Nodegroups is
    end Iterate_Summary;
 
    function Load return Summarized_List is
-      G : Nodegroup;
+      procedure Update_Slot_And_Node_Count (Key : Set_Of_Properties; Element : in out Nodegroup);
       N : Node;
       Position : Slurm.Nodes.Cursor;
       Group_List : Summarized_List;
-      Node_List : Nodes.List := Nodes.Load_Nodes;
+      Node_List  : Nodes.List := Nodes.Load_Nodes;
+      Properties : Set_Of_Properties;
+
+      procedure Update_Slot_And_Node_Count (Key : Set_Of_Properties; Element : in out Nodegroup) is
+         pragma Unreferenced (Key);
+      begin
+         --  Update totals
+         Element.Total_Nodes.Include (Get_Name (N));
+         Group_List.Summary (total).Include (Key      => Get_Name (N),
+                                             New_Item => Get_CPUs (N));
+         if Is_Not_Responding (N) then
+            Element.Offline_CPUs.Include (Key => Get_Name (N),
+                                New_Item => Get_CPUs (N));
+            Element.Offline_Nodes.Include (Get_Name (N));
+            Group_List.Summary (offline).Include (Key      => Get_Name (N),
+                                                  New_Item => Get_CPUs (N));
+         elsif Is_Draining (N) then
+            Element.Draining_CPUs.Include (Key      => Get_Name (N),
+                                     New_Item => Get_CPUs (N));
+            Element.Draining_Nodes.Include (Get_Name (N));
+            Group_List.Summary (disabled).Include (Key      => Get_Name (N),
+                                             New_Item => Get_CPUs (N));
+         else
+            if Get_Used_CPUs (N) > 0 then
+               Element.Used_Nodes.Include (Get_Name (N));
+               Element.Used_CPUs.Include (Key => Get_Name (N),
+                                    New_Item => Get_Used_CPUs (N));
+               Group_List.Summary (used).Include (Key      => Get_Name (N),
+                                                  New_Item => Get_Used_CPUs (N));
+            end if;
+            Element.Available_CPUs.Include (Key      => Get_Name (N),
+                                      New_Item => Get_Free_CPUs (N));
+            if Get_Used_CPUs (N) = 0 and then
+              Get_Free_CPUs (N) = Get_CPUs (N)
+            then
+               Element.Available_Nodes.Include (Get_Name (N));
+            end if;
+            Group_List.Summary (available).Include (Key      => Get_Name (N),
+                                                    New_Item => Get_Free_CPUs (N));
+         end if;
+      end Update_Slot_And_Node_Count;
+
    begin
+      Add_Jobs (From => Jobs.Load_Jobs,
+                To   => Node_List);
       Group_List.Clear;
       Position :=  First (Node_List);
-      --  Create Nodegroup according to first Node
-      G := New_Nodegroup (Element (Position));
+      nodes :
       while Has_Element (Position) loop
          N := Element (Position);
-         --  New Nodegroup?
-         if G /= N then
-            --  Yes. Store previous one.
-            Group_List.Append (G);
-            G := New_Nodegroup (N);
+         Properties := Get_Properties (N);
+         if not Group_List.Contains (Properties) then
+            Group_List.Insert (Properties, New_Nodegroup (Properties));
          end if;
-
-         begin
-            --  Update totals
-            G.Total_Nodes.Include (Get_Name (N));
-            Group_List.Summary (total).Include (Key      => Get_Name (N),
-                                                New_Item => Get_CPUs (N));
-            if Is_Not_Responding (N) then
-               G.Offline_CPUs.Include (Key => Get_Name (N),
-                                   New_Item => Get_CPUs (N));
-               G.Offline_Nodes.Include (Get_Name (N));
-               Group_List.Summary (offline).Include (Key      => Get_Name (N),
-                                                     New_Item => Get_CPUs (N));
-            elsif Is_Draining (N) then
-               G.Draining_CPUs.Include (Key      => Get_Name (N),
-                                        New_Item => Get_CPUs (N));
-               G.Draining_Nodes.Include (Get_Name (N));
-               Group_List.Summary (disabled).Include (Key      => Get_Name (N),
-                                                New_Item => Get_CPUs (N));
-            else
-               if Get_Used_CPUs (N) > 0 then
-                  G.Used_Nodes.Include (Get_Name (N));
-                  G.Used_CPUs.Include (Key => Get_Name (N),
-                                       New_Item => Get_Used_CPUs (N));
-                  Group_List.Summary (used).Include (Key      => Get_Name (N),
-                                                     New_Item => Get_Used_CPUs (N));
-               end if;
-               G.Available_CPUs.Include (Key      => Get_Name (N),
-                                               New_Item => Get_Free_CPUs (N));
-               if Get_Used_CPUs (N) = 0 and then
-                 Get_Free_CPUs (N) = Get_CPUs (N)
-               then
-                  G.Available_Nodes.Include (Get_Name (N));
-               end if;
-               Group_List.Summary (available).Include (Key      => Get_Name (N),
-                                                       New_Item => Get_Free_CPUs (N));
-            end if;
-         end;
-         --  Advance
+         Group_List.Update_Element (Group_List.Find (Properties),
+                                    Update_Slot_And_Node_Count'Access);
          Next (Position);
-      end loop;
-      --  That's it. Store final Nodegroup.
-      Group_List.Append (G);
+      end loop nodes;
       return Group_List;
    end Load;
 
-   function New_Nodegroup (Template : Slurm.Nodes.Node) return Nodegroup is
+   function New_Nodegroup (Properties : Set_Of_Properties) return Nodegroup is
       G : Nodegroup;
    begin
-      G.Properties := Get_Properties (Template);
+      G.Properties := Properties;
       return G;
    end New_Nodegroup;
 
