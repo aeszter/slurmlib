@@ -85,7 +85,7 @@ package body Slurm.Nodegroups is
 
    function Get_Total_Cores (G : Nodegroup) return Natural is
    begin
-      return  Sum (G.Total_CPUs);
+      return  Natural (G.Total_Nodes.Length) * Get_CPUs (G.Properties);
    end Get_Total_Cores;
 
    function Get_Total_Nodes (G : Nodegroup) return Natural is
