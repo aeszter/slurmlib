@@ -38,6 +38,9 @@ package Slurm.Nodes is
    procedure Iterate (Collection : List;
                       Process    : not null access procedure (Position : Cursor));
    function Load_Nodes return List;
+   function Select_Nodes (Source   : List;
+                          Selector : not null access function (Item : Node) return Boolean)
+                          return List;
 
    type Percent is range 0 .. 100;
 

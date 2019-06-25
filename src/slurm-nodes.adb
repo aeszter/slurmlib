@@ -145,10 +145,13 @@ package body Slurm.Nodes is
       end Add_One_Job;
 
       procedure Attach_Job (Position : Name_Sets.Cursor) is
+         use Lists;
          The_Node : Lists.Cursor := To.Container.Find (Name_Sets.Element (Position));
       begin
-         To.Container.Update_Element (Position => The_Node,
-                                      Process  => Add_One_Job'Access);
+         if The_Node /= Lists.No_Element then
+            To.Container.Update_Element (Position => The_Node,
+                                         Process  => Add_One_Job'Access);
+         end if;
       end Attach_Job;
 
       procedure Attach_Job_To_Nodes (Position : Jobs.Cursor) is
@@ -590,5 +593,23 @@ package body Slurm.Nodes is
    begin
       Lists.Next (Lists.Cursor (Position));
    end Next;
+
+   function Select_Nodes (Source   : List;
+                          Selector : not null access function (Item : Node) return Boolean)
+                          return List is
+      procedure Copy_If_Selected (Position : Cursor);
+      Result : List := (Container => Lists.Empty_Map);
+
+      procedure Copy_If_Selected (Position : Cursor) is
+      begin
+         if Selector (Element (Position)) then
+            Append (Result, Element (Position));
+         end if;
+      end Copy_If_Selected;
+
+   begin
+      Iterate (Source, Copy_If_Selected'Access);
+      return Result;
+   end Select_Nodes;
 
 end Slurm.Nodes;
