@@ -6,6 +6,7 @@ with Slurm.Errors;
 with Slurm.General;
 with Slurm.Utils; use Slurm.Utils;
 with Ada.Calendar;
+with Slurm.Tres; use Slurm.Tres;
 
 package body Slurm.Nodes is
 
@@ -115,12 +116,10 @@ package body Slurm.Nodes is
       use Slurm.Jobs;
       procedure Attach_Job_To_Node (Position : Jobs.Cursor);
 
-      The_Name : String := Get_Name (To);
-
       procedure Attach_Job_To_Node (Position : Jobs.Cursor) is
          J : Job := Element (Position);
       begin
-         if Has_Node (J, The_Name) then
+         if Has_Node (J, Get_Name (To)) then
             To.Jobs.Include (Get_ID (J));
          end if;
       end Attach_Job_To_Node;
@@ -131,30 +130,36 @@ package body Slurm.Nodes is
 
    procedure Add_Jobs (From : Slurm.Jobs.List; To : in out List) is
       use Slurm.Jobs;
-      procedure Add_One_Job (Key : Unbounded_String; N : in out Node);
+      procedure Add_One_Job (Key : Node_Name; N : in out Node);
       procedure Attach_Job_To_Nodes (Position : Jobs.Cursor);
-      procedure Attach_Job (Position : String_Sets.Cursor);
+      procedure Attach_Job (Position : Name_Sets.Cursor);
 
       ID : Natural;
+      CPUs : Natural;
 
-      procedure Add_One_Job (Key : Unbounded_String; N : in out Node) is
+      procedure Add_One_Job (Key : Node_Name; N : in out Node) is
          pragma Unreferenced (Key);
       begin
          N.Jobs.Include (ID);
+         N.Used_CPUs := N.Used_CPUs + CPUs;
       end Add_One_Job;
 
-      procedure Attach_Job (Position : String_Sets.Cursor) is
-         The_Node : Lists.Cursor := To.Container.Find (String_Sets.Element (Position));
+      procedure Attach_Job (Position : Name_Sets.Cursor) is
+         use Lists;
+         The_Node : Lists.Cursor := To.Container.Find (Name_Sets.Element (Position));
       begin
-         To.Container.Update_Element (Position => The_Node,
-                                      Process  => Add_One_Job'Access);
+         if The_Node /= Lists.No_Element then
+            To.Container.Update_Element (Position => The_Node,
+                                         Process  => Add_One_Job'Access);
+         end if;
       end Attach_Job;
 
       procedure Attach_Job_To_Nodes (Position : Jobs.Cursor) is
          J : Job := Element (Position);
-         Nodes : String_Sets.Set := Get_Nodes (J);
+         Nodes : Name_Set := Get_Nodes (J);
       begin
          ID := Get_ID (J);
+         CPUs := Get_CPUs (J) / Get_Node_Number (J);
          Nodes.Iterate (Attach_Job'Access);
       end Attach_Job_To_Nodes;
 
@@ -163,8 +168,9 @@ package body Slurm.Nodes is
    end Add_Jobs;
 
    procedure Append (Collection : in out List; Item : Node) is
+      use Lists;
    begin
-      Collection.Container.Insert (Item.Name, Item);
+      Collection.Container.Include (Item.Name, Item);
    end Append;
 
    function Build_List (Buffer : aliased node_info_msg_ptr) return List is
@@ -176,7 +182,7 @@ package body Slurm.Nodes is
       Node_Ptr := Buffer.node_array;
       for I in 1 .. Buffer.record_count loop
          Init (N, Node_Ptr);
-         Result.Container.Insert (N.Name, N);
+         Result.Container.Include (N.Name, N);
          Increment (Node_Ptr);
       end loop;
       slurm_free_node_info_msg (Buffer);
@@ -263,13 +269,18 @@ package body Slurm.Nodes is
 
    function Get_CPUs (N : Node) return Positive is
    begin
-      return N.CPUs;
+      return Get_CPUs (N.Properties);
    end Get_CPUs;
 
    function Get_Features (N : Node) return String is
    begin
-      return To_String (N.Features);
+      return Get_Features (N.Properties);
    end Get_Features;
+
+   function Get_Free_CPUs (N : Node) return Natural is
+   begin
+      return Get_CPUs (N) - N.Used_CPUs;
+   end Get_Free_CPUs;
 
    function Get_Free_Memory (N : Node) return String is
    begin
@@ -278,12 +289,12 @@ package body Slurm.Nodes is
 
    function Get_Memory (N : Node) return String is
    begin
-      return To_String (N.Real_Memory);
+      return To_String (Get_Memory (N.Properties));
    end Get_Memory;
 
-   function Get_Name (N : Node) return String is
+   function Get_Name (N : Node) return Node_Name is
    begin
-      return To_String (N.Name);
+      return N.Name;
    end Get_Name;
 
    function Get_Node (Collection : List; Name : String) return Node is
@@ -314,6 +325,11 @@ package body Slurm.Nodes is
    begin
       return To_String (N.Partitions);
    end Get_Partitions;
+
+   function Get_Properties (N : Node) return Set_Of_Properties is
+   begin
+      return N.Properties;
+   end Get_Properties;
 
    function Get_Reason (N : Node) return String is
    begin
@@ -360,10 +376,15 @@ package body Slurm.Nodes is
       return N.Tmp_Total;
    end Get_Tmp_Total;
 
-   function Get_TRES (N : Node) return String is
+   function Get_TRES (N : Node) return Slurm.Tres.List is
    begin
-      return To_String (N.Tres);
+      return Get_TRES (N.Properties);
    end Get_TRES;
+
+   function Get_Used_CPUs (N : Node) return Natural is
+   begin
+      return N.Used_CPUs;
+   end Get_Used_CPUs;
 
    function Get_Version (N : Node) return String is
    begin
@@ -393,12 +414,10 @@ package body Slurm.Nodes is
          when Constraint_Error =>
             N.Free_Memory := Gigs (0);
       end;
-      N.CPUs := Natural (Ptr.all.cpus);
-      N.Features := Convert_String (Ptr.all.features);
-      N.GRES := Gres.Init (To_String (Ptr.all.gres));
+      Init_CPUs (N.Properties, Natural (Ptr.all.cpus));
       N.GRES_Drain := Gres.Init (To_String (Ptr.all.gres_drain));
       N.GRES_Used := Gres.Init (To_String (Ptr.all.gres_used));
-      N.Name := Convert_String (Ptr.all.name);
+      N.Name := Node_Name (Convert_String (Ptr.all.name));
       N.State := Ptr.all.node_state;
       N.OS := Convert_String (Ptr.all.os);
       begin
@@ -407,12 +426,6 @@ package body Slurm.Nodes is
             -- even though this violates the specs
          when others =>
             N.Owner := To_User_Name ("");
-      end;
-      begin
-         N.Real_Memory := MiB_To_Gigs (Ptr.all.real_memory);
-      exception
-         when others =>
-            N.Real_Memory := Gigs (0);
       end;
       N.Reason := Convert_String (Ptr.all.reason);
       if N.Reason = "" then
@@ -432,8 +445,16 @@ package body Slurm.Nodes is
             N.Tmp_Total := Gigs (0);
       end;
       N.Weight := Natural (Ptr.all.weight);
-      N.Tres := Convert_String (Ptr.all.tres_fmt_str);
       N.Version := Convert_String (Ptr.all.version);
+      Init_GRES (N.Properties, Gres.Init (To_String (Ptr.all.gres)));
+      Init_TRES (N.Properties, Tres.Init (To_String (Ptr.all.tres_fmt_str)));
+      begin
+         Init_Memory (N.Properties, MiB_To_Gigs (Ptr.all.real_memory));
+      exception
+         when others =>
+            Init_Memory (N.Properties, Gigs (0));
+      end;
+      Init_Features (N.Properties, To_String (Ptr.all.features));
    end Init;
 
    function Is_Completing (N : Node) return Boolean is
@@ -485,19 +506,12 @@ package body Slurm.Nodes is
 
    procedure Iterate_GRES (N       : Node;
                            Process : not null access procedure (R : Slurm.Gres.Resource)) is
-      procedure Wrapper (Position : Slurm.Gres.Lists.Cursor);
-
-      procedure Wrapper (Position : Slurm.Gres.Lists.Cursor) is
-      begin
-         Process (Slurm.Gres.Lists.Element (Position));
-      end Wrapper;
-
    begin
-      N.GRES.Iterate (Wrapper'Access);
+      Iterate_GRES (N.Properties, Process);
    end Iterate_GRES;
 
    procedure Iterate_GRES_Drain (N       : Node;
-                           Process : not null access procedure (R : Slurm.Gres.Resource)) is
+                                 Process : not null access procedure (R : Slurm.Gres.Resource)) is
       procedure Wrapper (Position : Slurm.Gres.Lists.Cursor);
 
       procedure Wrapper (Position : Slurm.Gres.Lists.Cursor) is
@@ -510,7 +524,7 @@ package body Slurm.Nodes is
    end Iterate_GRES_Drain;
 
    procedure Iterate_GRES_Used (N       : Node;
-                           Process : not null access procedure (R : Slurm.Gres.Resource)) is
+                                 Process : not null access procedure (R : Slurm.Gres.Resource)) is
       procedure Wrapper (Position : Slurm.Gres.Lists.Cursor);
 
       procedure Wrapper (Position : Slurm.Gres.Lists.Cursor) is
@@ -566,12 +580,36 @@ package body Slurm.Nodes is
 
    function Load_Per_Core (N : Node) return Load is
    begin
-      return Load (N.Load) / N.CPUs;
+      return Load (N.Load) / Get_CPUs (N);
    end Load_Per_Core;
 
    function Mem_Percentage (N : Node) return Percent is
    begin
-      return 100 - Percent (100 * N.Free_Memory / N.Real_Memory);
+      return 100 - Percent (100 * N.Free_Memory / Get_Memory (N.Properties));
    end Mem_Percentage;
+
+   overriding
+   procedure Next (Position : in out Cursor) is
+   begin
+      Lists.Next (Lists.Cursor (Position));
+   end Next;
+
+   function Select_Nodes (Source   : List;
+                          Selector : not null access function (Item : Node) return Boolean)
+                          return List is
+      procedure Copy_If_Selected (Position : Cursor);
+      Result : List := (Container => Lists.Empty_Map);
+
+      procedure Copy_If_Selected (Position : Cursor) is
+      begin
+         if Selector (Element (Position)) then
+            Append (Result, Element (Position));
+         end if;
+      end Copy_If_Selected;
+
+   begin
+      Iterate (Source, Copy_If_Selected'Access);
+      return Result;
+   end Select_Nodes;
 
 end Slurm.Nodes;

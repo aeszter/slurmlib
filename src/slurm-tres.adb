@@ -1,14 +1,10 @@
 with Ada.Strings.Fixed; use Ada.Strings.Fixed;
 
-package body Slurm.Gres is
+package body Slurm.Tres is
 
    function "<" (Left, Right : Resource) return Boolean is
    begin
-      if Left.Category < Right.Category then
-         return True;
-      elsif Left.Category > Right.Category then
-         return False;
-      elsif Left.Name < Right.Name then
+      if Left.Name < Right.Name then
          return True;
       elsif Left.Name > Right.Name then
          return False;
@@ -42,12 +38,12 @@ package body Slurm.Gres is
          end loop;
          return False;
       end if;
-   end "<";
+   end"<";
 
    function ">" (Left, Right : Resource) return Boolean is
    begin
       return Right < Left;
-   end ">";
+   end">";
 
    function ">" (Left, Right : List) return Boolean is
    begin
@@ -73,24 +69,19 @@ package body Slurm.Gres is
    end Init;
 
    function New_Resource (Source : String) return Resource is
-      Second : Natural := Index (Source  => Source,
-                                 Pattern => ":");
-      Third  : Natural := Index (Source => Source,
-                                 From   => Second + 1,
-                                 Pattern => ":");
+      Equal : Natural := Index (Source  => Source,
+                                 Pattern => "=");
+      Unit  : Natural := Index (Source => Source,
+                                 From   => Equal + 1,
+                                 Pattern => "M");
       Result : Resource;
    begin
-      Result.Category := To_Unbounded_String (Source (Source'First .. Second - 1));
-      Result.Name := To_Unbounded_String (Source (Second + 1 .. Third - 1));
-      Result.Number := Integer'Value (Source (Third + 1 .. Source'Last));
-      return Result;
+      if Unit = 0 then
+         Unit := Source'Last + 1;
+      end if;
+         Result.Name := To_Unbounded_String (Source (Source'First .. Equal - 1));
+         Result.Number := Integer'Value (Source (Equal + 1 .. Unit - 1));
+         return Result;
    end New_Resource;
 
-   function To_String (Item : Resource) return String is
-   begin
-      return Item.Number'Img & " "
-        & To_String (Item.Category) & ":"
-        & To_String (Item.Name);
-   end To_String;
-
-end Slurm.Gres;
+end Slurm.Tres;

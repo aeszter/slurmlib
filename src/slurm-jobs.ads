@@ -2,6 +2,7 @@ with Ada.Calendar;
 with Ada.Containers;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
+with Slurm.Node_Properties;
 with Slurm.Utils; use Slurm.Utils;
 with Ada.Containers.Ordered_Maps;
 
@@ -314,13 +315,14 @@ package Slurm.Jobs is
    function Has_Comment (J : Job) return Boolean;
    function Get_Comment (J : Job) return String;
    function Get_CPUs (J : Job) return Natural;
+   function Get_Node_Number (J : Job) return Natural;
    function Get_Dependency (J : Job) return String;
    function Get_Gres (J : Job) return String;
    function Get_Group (J : Job) return User_Name;
    function Get_ID (J : Job) return Positive;
    function Get_Name (J : Job) return String;
-   function Get_Nodes (J : Job) return Slurm.Utils.String_Sets.Set;
-   function Has_Node (J : Job; Nodename : String) return Boolean;
+   function Get_Nodes (J : Job) return Slurm.Node_Properties.Name_Set;
+   function Has_Node (J : Job; Nodename : Slurm.Node_Properties.Node_Name) return Boolean;
    function Get_Owner (J : Job) return User_Name;
    function Get_Partition (J : Job) return String;
    function Get_Priority (J : Job) return Natural;
@@ -338,6 +340,10 @@ package Slurm.Jobs is
    function Get_State_Reason (J : Job) return state_reasons;
    function Get_Submission_Time (J : Job) return Ada.Calendar.Time;
    function Get_Tasks (J : Job) return Positive;
+   function Get_Tasks_Per_Core (J : Job) return Positive;
+   function Get_Tasks_Per_Node (J : Job) return Positive;
+   function Get_Tasks_Per_Socket (J : Job) return Positive;
+   function Get_Tasks_Per_Board (J : Job) return Positive;
    function Get_Std_In (J : Job) return String;
    function Get_Std_Out (J : Job) return String;
    function Get_Std_Err (J : Job) return String;
@@ -383,14 +389,17 @@ private
       Submission_Time : Ada.Calendar.Time;
       Tasks           : Natural;
       CPUs            : Natural;
+      Node_Number     : Natural;
       Dependency      : Unbounded_String;
-      Nodes           : Slurm.Utils.String_Sets.Set;
+      Nodes           : Slurm.Node_Properties.Name_Set;
       Partition       : Unbounded_String;
       Reservation     : Unbounded_String;
       Std_In, Std_Err, Std_Out : Unbounded_String;
       Directory                : Unbounded_String;
       Command                  : Unbounded_String;
       TRES_Request, TRES_Allocated : Unbounded_String;
+      Tasks_Per_Core, Tasks_Per_Node,
+      Tasks_Per_Socket, Tasks_Per_Board : Natural;
    end record;
 
    package Lists is new ada.Containers.Ordered_Maps (Element_Type => Job,

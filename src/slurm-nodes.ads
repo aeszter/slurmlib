@@ -8,6 +8,7 @@ with Slurm.Gres;
 with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Ordered_Sets;
 with Slurm.Jobs;
+with Slurm.Tres;
 
 package Slurm.Nodes is
 
@@ -32,10 +33,14 @@ package Slurm.Nodes is
    function Element (Position : Cursor) return Node;
    function Has_Element (Position : Cursor) return Boolean;
    function First (Collection : List) return Cursor;
+   procedure Next (Position : in out Cursor);
    procedure Append (Collection : in out List; Item : Node);
    procedure Iterate (Collection : List;
                       Process    : not null access procedure (Position : Cursor));
    function Load_Nodes return List;
+   function Select_Nodes (Source   : List;
+                          Selector : not null access function (Item : Node) return Boolean)
+                          return List;
 
    type Percent is range 0 .. 100;
 
@@ -48,10 +53,12 @@ package Slurm.Nodes is
    function Get_Cores_Per_Socket (N : Node) return Positive;
 
    function Get_CPUs (N : Node) return Positive;
+   function Get_Free_CPUs (N : Node) return Natural;
+   function Get_Used_CPUs (N : Node) return Natural;
    function Get_Features (N : Node) return String;
    function Get_Free_Memory (N : Node) return String;
    function Get_Memory (N : Node) return String;
-   function Get_Name (N : Node) return String;
+   function Get_Name (N : Node) return Node_Name;
    function Get_OS (N : Node) return String;
    function Get_Owner (N : Node) return User_Name;
    function Get_Partitions (N : Node) return String;
@@ -64,9 +71,10 @@ package Slurm.Nodes is
    function Get_Start_Time (N : Node) return Ada.Calendar.Time;
    function Get_Threads_Per_Core (N : Node) return Positive;
    function Get_Tmp_Total (N : Node) return Gigs;
-   function Get_TRES (N : Node) return String;
+   function Get_TRES (N : Node) return Slurm.Tres.List;
    function Get_Version (N : Node) return String;
    function Get_Weight (N : Node) return Integer;
+   function Get_Properties (N : Node) return Set_Of_Properties;
 
    function Is_Draining (N : Node) return Boolean;
    function Is_Completing (N : Node) return Boolean;
@@ -86,7 +94,7 @@ package Slurm.Nodes is
    procedure Iterate_GRES_Drain (N       : Node;
                                  Process : not null access procedure (R : Slurm.Gres.Resource));
    procedure Iterate_GRES_Used (N       : Node;
-                                Process : not null access procedure (R : Slurm.Gres.Resource));
+                                 Process : not null access procedure (R : Slurm.Gres.Resource));
 
    function Get_Node (Collection : List; Name : String) return Node;
 
@@ -104,16 +112,13 @@ private
       Cores_Per_Socket : Natural;
       Sockets          : Natural;
       Threads_Per_Core : Natural;
-      CPUs             : Natural;
+      Used_CPUs        : Natural := 0;
       Start_Time       : Ada.Calendar.Time;
       Load             : Usage_Number;
       Free_Memory      : Gigs;
-      Real_Memory      : Gigs;
-      Features         : Unbounded_String;
-      GRES,
       GRES_Drain,
       GRES_Used        : Slurm.Gres.List;
-      Name             : Unbounded_String;
+      Name             : Node_Name;
       State            : Slurm.C_Types.uint32_t;
       OS               : Unbounded_String;
       Owner            : User_Name;
@@ -123,14 +128,14 @@ private
       Reason_User      : User_Name;
       Tmp_Total        : Gigs;
       Weight           : Natural;
-      Tres             : Unbounded_String;
       Version          : Unbounded_String;
-      Jobs : Job_Lists.Set;
+      Jobs             : Job_Lists.Set;
+      Properties       : Set_Of_Properties;
 
    end record;
 
    package Lists is new ada.Containers.Ordered_Maps (Element_Type => Node,
-                                                     Key_Type => Unbounded_String);
+                                                     Key_Type => Node_Name);
    type Cursor is new Lists.Cursor;
    type List is record
       Container : Lists.Map;
