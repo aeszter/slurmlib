@@ -1,10 +1,11 @@
 with Ada.Calendar;
 with Ada.Containers;
+with Ada.Containers.Ordered_Maps;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
+with Slurm.Loggers;
 with Slurm.Node_Properties;
 with Slurm.Utils; use Slurm.Utils;
-with Ada.Containers.Ordered_Maps;
 
 package Slurm.Jobs is
 --      slurm_pid2jobid - For a given process ID on a node get the corresponding Slurm job ID.
@@ -298,12 +299,13 @@ package Slurm.Jobs is
         WAIT_RESV_DELETED             -- Reservation was deleted */
                          );
 
-   type Job is private;
+   type Job is new Loggers.Logger with private;
    type List is private;
    type Cursor is private;
    function Element (Position : Cursor) return Job;
    function Has_Element (Position : Cursor) return Boolean;
    function First (Collection : List) return Cursor;
+   procedure Next (Position : in out Cursor);
    procedure Append (Collection : in out List; Item : Job);
 
    procedure Iterate (Collection : List;
@@ -368,7 +370,7 @@ package Slurm.Jobs is
 
 private
 
-   type Job is record
+   type Job is new Slurm.Loggers.Logger with record
       Comment, Admin_Comment : Unbounded_String;
       Alloc_Node  : Unbounded_String;
       Gres        : Unbounded_String;

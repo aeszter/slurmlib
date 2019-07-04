@@ -6,9 +6,10 @@ with Slurm.Nodes;
 with Slurm.Gres;
 with Slurm.Utils; use Slurm.Utils;
 with Slurm.Tres;
+with Slurm.Loggers;
 
 package Slurm.Nodegroups is
-   type Nodegroup is private;
+   type Nodegroup is new Slurm.Loggers.Logger with private;
 
    package Countable_Sets is new Ada.Containers.Ordered_Sets (Element_Type => Node_Name);
    package Countable_Maps is new Ada.Containers.Ordered_Maps (Key_Type     => Node_Name,
@@ -58,7 +59,7 @@ package Slurm.Nodegroups is
    function Get_Features (G : Nodegroup) return String;
 
 private
-   type Nodegroup is record
+   type Nodegroup is new Slurm.Loggers.Logger with record
       Available_Nodes, Total_Nodes,
       Draining_Nodes,
       Offline_Nodes, Used_Nodes : Countable_Sets.Set;
