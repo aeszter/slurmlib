@@ -21,6 +21,12 @@ package Slurm.Bunches is
    function Get_Depending_Jobs (B : Bunch) return Natural;
 
    function New_Bunch (Requirements : Set_Of_Requirements) return Bunch;
+   procedure Init (Requirements : in out Set_Of_Requirements;
+                   CPUs         : Natural;
+                   Gres, TRES   : String);
+   function Get_CPUs (Requirements : Set_Of_Requirements) return Natural;
+   function Get_Gres (Requirements : Set_Of_Requirements) return String;
+   function Get_TRES (Requirements : Set_Of_Requirements) return String;
 
 private
    type Set_Of_Requirements is record

@@ -22,6 +22,11 @@ package body Slurm.Bunches is
       return B.Requirements.CPUs;
    end Get_CPUs;
 
+   function Get_CPUs (Requirements : Set_Of_Requirements) return Natural is
+   begin
+      return Requirements.CPUs;
+   end Get_CPUs;
+
    function Get_Depending_Jobs (B : Bunch) return Natural is
    begin
       return B.Dependency;
@@ -30,6 +35,11 @@ package body Slurm.Bunches is
    function Get_Gres (B : Bunch) return String is
    begin
       return To_String (B.Requirements.Gres);
+   end Get_Gres;
+
+   function Get_Gres (Requirements : Set_Of_Requirements) return String is
+   begin
+      return To_String (Requirements.Gres);
    end Get_Gres;
 
    function Get_Total_Jobs (B : Bunch) return Natural is
@@ -42,6 +52,11 @@ package body Slurm.Bunches is
       return To_String (B.Requirements.TRES);
    end Get_TRES;
 
+   function Get_TRES (Requirements : Set_Of_Requirements) return String is
+   begin
+      return To_String (Requirements.TRES);
+   end Get_TRES;
+
    function Get_Waiting_Jobs (B : Bunch) return Natural is
    begin
       return B.Waiting;
@@ -51,6 +66,15 @@ package body Slurm.Bunches is
    begin
       return B.Waiting > 0;
    end Has_Waiting;
+
+   procedure Init (Requirements : in out Set_Of_Requirements;
+                   CPUs         : Natural;
+                   Gres, TRES   : String) is
+   begin
+      Requirements.CPUs := CPUs;
+      Requirements.Gres := To_Unbounded_String (Gres);
+      Requirements.TRES := To_Unbounded_String (TRES);
+   end Init;
 
    procedure Iterate
      (Collection : List;
