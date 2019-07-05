@@ -867,6 +867,11 @@ package body Slurm.Jobs is
       return Build_List (Buffer);
    end Load_User;
 
+   overriding procedure Next (Position : in out Cursor) is
+   begin
+      Lists.Next (Lists.Cursor (Position));
+   end Next;
+
    function Walltime (J : Job) return Duration is
       use Ada.Calendar;
    begin

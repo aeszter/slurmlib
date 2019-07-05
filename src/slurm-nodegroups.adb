@@ -2,6 +2,7 @@ with Slurm.Jobs;
 with Slurm.Nodes; use Slurm.Nodes;
 with Slurm.Utils; use Slurm.Utils;
 with Slurm.Tres;
+with Ada.Exceptions; use Ada.Exceptions;
 
 package body Slurm.Nodegroups is
 
@@ -203,6 +204,14 @@ package body Slurm.Nodegroups is
             Group_List.Summary (available).Include (Key      => Get_Name (N),
                                                     New_Item => Get_Free_CPUs (N));
          end if;
+         if N.Has_Errors then
+            Element.Record_Error ("Node " & To_String (Get_Name (N)) & " has errors");
+         end if;
+      exception
+         when E : others =>
+            Element.Record_Error ("Node " & To_String (Get_Name (N)) & " raised:"
+                                 & Exception_Message (E));
+
       end Update_Slot_And_Node_Count;
 
    begin

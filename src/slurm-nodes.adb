@@ -142,6 +142,10 @@ package body Slurm.Nodes is
       begin
          N.Jobs.Include (ID);
          N.Used_CPUs := N.Used_CPUs + CPUs;
+         if N.Used_CPUs > Get_CPUs (N) then
+            N.Record_Error ("used CPUs > total CPUs");
+            N.Used_CPUs := Get_CPUs (N);
+         end if;
       end Add_One_Job;
 
       procedure Attach_Job (Position : Name_Sets.Cursor) is
@@ -159,7 +163,11 @@ package body Slurm.Nodes is
          Nodes : Name_Set := Get_Nodes (J);
       begin
          ID := Get_ID (J);
-         CPUs := Get_CPUs (J) / Get_Node_Number (J);
+         if Is_Running (J) then
+            CPUs := Get_CPUs (J) / Get_Node_Number (J);
+         else
+            CPUs := 0;
+         end if;
          Nodes.Iterate (Attach_Job'Access);
       end Attach_Job_To_Nodes;
 

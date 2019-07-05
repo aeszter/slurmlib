@@ -6,9 +6,10 @@ with Slurm.C_Types;
 with POSIX.C;
 with Ada.Containers;
 with Ada.Containers.Ordered_Sets;
+with Ada.Containers.Doubly_Linked_Lists;
 
 package Slurm.Utils is
-   Version : String := "v0.4";
+   Version : String := "v0.5";
    type Tri_State is (False, True, Undecided);
    type User_Name is new String (1 .. 8);
 
@@ -30,8 +31,8 @@ package Slurm.Utils is
 --     function To_Tri_State (Truth : String) return Tri_State;
 --     function To_Tri_State (Truth : Boolean) return Tri_State;
 --
---     package String_Lists is
---       new Ada.Containers.Doubly_Linked_Lists (Element_Type => Unbounded_String);
+   package String_Lists is
+     new Ada.Containers.Doubly_Linked_Lists (Element_Type => Unbounded_String);
 --
    package String_Sets is
      new Ada.Containers.Ordered_Sets (Element_Type => Unbounded_String);
@@ -49,7 +50,7 @@ package Slurm.Utils is
 --                                        "="          => "=");
 --
 --
---     subtype String_List is String_Lists.List;
+   subtype String_List is String_Lists.List;
 --     subtype ID_List is ID_Lists.Set;
 --     subtype Hash_String_Type is Hash_Strings.Bounded_String;
 --

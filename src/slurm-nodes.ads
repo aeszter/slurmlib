@@ -1,6 +1,7 @@
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Calendar;
 with Slurm.C_Types;
+with Slurm.Loggers;
 with Slurm.Node_Properties; use Slurm.Node_Properties;
 with Slurm.Partitions; use Slurm.Partitions;
 with Slurm.Utils; use Slurm.Utils;
@@ -27,7 +28,7 @@ package Slurm.Nodes is
       NODE_STATE_MIXED,
       NODE_STATE_FUTURE);
 
-   type Node is private;
+   type Node is new Loggers.Logger with private;
    type List is private;
    type Cursor is private;
    function Element (Position : Cursor) return Node;
@@ -105,7 +106,7 @@ private
 
    package Job_Lists is new ada.Containers.Ordered_Sets (Element_Type => Positive);
 
-   type Node is record
+   type Node is new Loggers.Logger with record
       Architecture     : Unbounded_String;
       Boards           : Natural;
       Boot_Time        : Ada.Calendar.Time;
