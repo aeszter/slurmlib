@@ -20,8 +20,8 @@ package Slurm.Plain_Pipe_Streams is
    procedure Close (Input : in out Plain_Pipe_Stream; Exit_Status : out Natural);
 
    procedure Execute (P : in out Plain_Pipe_Stream;
-                      Command : Trusted_Command_Name;
-                      Arguments : Trusted_String);
+                   Command : Trusted_Command_Name;
+                   Arguments : Trusted_String_List);
 private
    type Plain_Pipe_Stream is tagged record
       Pipe        : File_Descriptor;

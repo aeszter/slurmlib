@@ -1,11 +1,7 @@
 with Ada.IO_Exceptions;
-with Ada.Strings.Fixed;
 with POSIX.Process_Primitives; use POSIX.Process_Primitives;
 
 package body Slurm.Plain_Pipe_Streams is
-
-   procedure To_String_List (Source : String;
-                             Dest   : out POSIX_String_List);
 
    -----------
    -- Close --
@@ -31,11 +27,12 @@ package body Slurm.Plain_Pipe_Streams is
 
    procedure Execute (P : in out Plain_Pipe_Stream;
                       Command : Trusted_Command_Name;
-                      Arguments : Trusted_String)
+                      Arguments : Trusted_String_List)
    is
       To_QView : POSIX.IO.File_Descriptor;
       Template : Process_Template;
-      Arg_List : POSIX_String_List;
+      POSIX_Arguments : POSIX_String_List;
+      Position : Taint.Cursor;
    begin
       POSIX.IO.Create_Pipe (Read_End  => P.Pipe,
                             Write_End => To_QView);
@@ -45,14 +42,17 @@ package body Slurm.Plain_Pipe_Streams is
       Set_File_Action_To_Duplicate (Template  => Template,
                                     File      => Standard_Output,
                                     From_File => To_QView);
+      POSIX.Append (POSIX_Arguments, To_POSIX_String (Value (Command)));
 
-      To_String_List (Source => Value (Command) & " " & Value (Arguments),
-                      Dest   => Arg_List);
-
+      Position := Arguments.First;
+      while Has_Element (Position) loop
+         POSIX.Append (POSIX_Arguments, To_POSIX_String (Value (Element (Position))));
+         Next (Position);
+      end loop;
       Start_Process (Child    => P.PID,
                      Pathname => To_POSIX_String (Value (Command)),
                      Template => Template,
-                     Arg_List => Arg_List);
+                     Arg_List => POSIX_Arguments);
       Close (File => To_QView);
    end Execute;
 
@@ -76,25 +76,5 @@ package body Slurm.Plain_Pipe_Streams is
       when others =>
          raise;
    end Next_Char;
-
-   procedure To_String_List
-     (Source : String;
-      Dest   : out POSIX_String_List)
-   is
-      Next_Index : Natural := 1;
-      Index_List : array (1 .. 256) of Natural;
-   begin
-      Index_List (Next_Index) := Source'First;
-      while Index_List (Next_Index) <= Source'Last loop
-         Next_Index := Next_Index + 1;
-         Index_List (Next_Index) := 1 + Ada.Strings.Fixed.Index (Source
-                                  (Index_List (Next_Index - 1) .. Source'Last), " ");
-         if Index_List (Next_Index) = 1 then
-            Index_List (Next_Index) := Source'Last + 2;
-         end if;
-         POSIX.Append (Dest, To_POSIX_String (Source
-                       (Index_List (Next_Index - 1) .. Index_List (Next_Index) - 2)));
-      end loop;
-   end To_String_List;
 
 end Slurm.Plain_Pipe_Streams;

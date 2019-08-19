@@ -29,11 +29,14 @@ package body Slurm.Priorities is
 
       Data : Spread_Sheet;
       Status : Natural;
-      Format : Trusted_String := Implicit_Trust ("-o ""%i %r %Y %A %F %J %P %Q %T"" ");
-
+      Arguments : Trusted_String_List;
    begin
+      Arguments.Append (Implicit_Trust ("-o%i %r %Y %A %F %J %P %Q"));
+      if Parameter /= Implicit_Trust ("") then
+         Arguments.Append (Parameter);
+      end if;
       Slurm.Parser.Setup (Command     => Cmd_Sprio,
-                          Selector    => Format & Parameter,
+                          Arguments   => Arguments,
                           Output      => Data,
                           Exit_Status => Status);
       if Status /= 0 then

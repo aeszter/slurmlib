@@ -9,10 +9,36 @@ package body Slurm.Taint is
       return Trusted_String (String (Left) & String (Right));
    end "&";
 
+   procedure Append (Source : in out Trusted_String_List;
+                     New_Item : Trusted_String) is
+   begin
+      Lists.Append (Lists.List (Source), To_Unbounded_String (Value (New_Item)));
+   end Append;
+
+   function Element (Position : Cursor) return Trusted_String is
+   begin
+      return Trusted_String (To_String (Lists.Element (Lists.Cursor (Position))));
+   end Element;
+
+   function First (Collection : Trusted_String_List) return Cursor is
+   begin
+      return Cursor (Lists.First (Lists.List (Collection)));
+   end First;
+
+   overriding function Has_Element (Position : Cursor) return Boolean is
+   begin
+      return Lists.Has_Element (Lists.Cursor (Position));
+   end Has_Element;
+
    function Implicit_Trust (S : String) return Trusted_String is
    begin
       return Trusted_String (S);
    end Implicit_Trust;
+
+   overriding procedure Next (Position : in out Cursor) is
+   begin
+      Lists.Next (Lists.Cursor (Position));
+   end Next;
 
    function Sanitise (S : String) return Trusted_String is
       function Is_Harmless_Dash (Char : in Character; Where : Positive) return Boolean;
@@ -73,6 +99,17 @@ package body Slurm.Taint is
    function Value (S : Trusted_Command_Name) return String is
    begin
       return String (S);
+   end Value;
+
+   function Value (Collection : Trusted_String_List) return String is
+      result : Unbounded_String;
+      Position : Cursor := Collection.First;
+   begin
+      while Has_Element (Position) loop
+         Append (result, Element (Position));
+         Next (Position);
+      end loop;
+      return To_String (result);
    end Value;
 
 end Slurm.Taint;

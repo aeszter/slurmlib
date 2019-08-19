@@ -1,3 +1,6 @@
+with Ada.Containers.Doubly_Linked_Lists;
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+
 package Slurm.Taint is
 
    --  data of type Trusted_String can be passed as parameters to external programs
@@ -35,9 +38,25 @@ package Slurm.Taint is
 
    Cmd_Sprio : constant Trusted_Command_Name;
 
+   type Trusted_String_List is tagged private;
+
+   type Cursor is private;
+
+   procedure Append (Source : in out Trusted_String_List;
+                     New_Item : Trusted_String);
+   function First (Collection : Trusted_String_List) return Cursor;
+   function Has_Element (Position : Cursor) return Boolean;
+   procedure Next (Position : in out Cursor);
+   function Element (Position : Cursor) return Trusted_String;
+   function Value (Collection : Trusted_String_List) return String;
+
 private
    type Trusted_String is new String;
    type Trusted_Command_Name is new String;
 
    Cmd_Sprio : constant Trusted_Command_Name := "sprio";
+
+   package Lists is new ada.Containers.Doubly_Linked_Lists (Unbounded_String);
+   type Trusted_String_List is new Lists.List with null record;
+   type Cursor is new Lists.Cursor;
 end Slurm.Taint;

@@ -7,9 +7,9 @@ package Slurm.Parser is
 
    Parser_Error : exception;
 
-   procedure Setup (Command     : Trusted_Command_Name;
-                    Selector    : Trusted_String;
-                    Output      : out Spread_Sheets.Spread_Sheet;
+   procedure Setup (Command   : Trusted_Command_Name;
+                    Arguments : Trusted_String_List;
+                    Output    : out Spread_Sheets.Spread_Sheet;
                     Exit_Status : out Natural);
 
 private
