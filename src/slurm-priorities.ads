@@ -4,6 +4,7 @@ package Slurm.Priorities is
 
    type Priority is record
       Total, Age, Fairshare, Job_Size, Partition : Natural;
+      QOS : Natural;
    end record;
 
    Undefined : constant Priority := (others => 0);

@@ -8,7 +8,7 @@ package body Slurm.Priorities is
    All_Preloaded : Boolean := False;
 
    The_List : Maps.Map;
-   Expected_Header : array (1 .. 7) of Unbounded_String;
+   Expected_Header : array (1 .. 8) of Unbounded_String;
 
    procedure Load_One (J : Positive);
    procedure Internal_Load (Parameter : Trusted_String);
@@ -46,7 +46,7 @@ package body Slurm.Priorities is
 
       Data.Rewind;
       -- header line
-      for Column in 1 .. 5 loop
+      for Column in Expected_Header'Range loop
          if Data.Current /= Expected_Header (Column) then
             if Data.Current = "Unable" then
                return; -- probably Unable to find jobs matching user/id(s) specified
@@ -60,7 +60,7 @@ package body Slurm.Priorities is
       end loop;
       Data.Next; -- new line
 
-      loop
+      while not Data.At_End loop
          declare
             Prio : Priority;
             J : Positive;
@@ -80,6 +80,8 @@ package body Slurm.Priorities is
             Prio.Job_Size := Integer'Value (Data.Current);
             Data.Next;
             Prio.Partition := Integer'Value (Data.Current);
+            Data.Next;
+            Prio.QOS := Integer'Value (Data.Current);
             Data.Next;
             if not Data.At_Separator then
                raise Format_Error with "Long line";
@@ -109,4 +111,5 @@ begin
    Expected_Header (5) := To_Unbounded_String ("FAIRSHARE");
    Expected_Header (6) := To_Unbounded_String ("JOBSIZE");
    Expected_Header (7) := To_Unbounded_String ("PARTITION");
+   Expected_Header (8) := To_Unbounded_String ("QOS");
 end Slurm.Priorities;
