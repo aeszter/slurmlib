@@ -37,6 +37,7 @@ package Slurm.Taint is
    function Trust_As_Command (S : String) return Trusted_Command_Name;
 
    Cmd_Sprio : constant Trusted_Command_Name;
+   Cmd_Sshare : constant Trusted_Command_Name;
 
    type Trusted_String_List is tagged private;
 
@@ -55,6 +56,7 @@ private
    type Trusted_Command_Name is new String;
 
    Cmd_Sprio : constant Trusted_Command_Name := "sprio";
+   Cmd_Sshare : constant Trusted_Command_Name := "sshare";
 
    package Lists is new ada.Containers.Doubly_Linked_Lists (Unbounded_String);
    type Trusted_String_List is new Lists.List with null record;
