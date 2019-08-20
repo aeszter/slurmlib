@@ -17,7 +17,9 @@ package Slurm.Spread_Sheets is
                              Line_Separator => True);
 
    procedure Parse (Sheet   : out Spread_Sheet;
-                    Input   : in out Plain_Pipe_Stream);
+                    Input   : in out Plain_Pipe_Stream;
+                    Field_Separator : Character;
+                    Standard_Separator : Boolean);
 
    function At_End (Sheet : Spread_Sheet) return Boolean;
    function At_Separator (Sheet : Spread_Sheet) return Boolean;

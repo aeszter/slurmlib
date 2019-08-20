@@ -33,9 +33,10 @@ package body Slurm.Spread_Sheets is
       Sheet.Position := Next (Sheet.Position);
    end Next;
 
-   procedure Parse
-     (Sheet   : out Spread_Sheet;
-      Input   : in out Plain_Pipe_Stream)
+   procedure Parse (Sheet   : out Spread_Sheet;
+                    Input   : in out Plain_Pipe_Stream;
+                    Field_Separator : Character;
+                    Standard_Separator : Boolean)
    is
       Buffer : Unbounded_String;
       C      : Character;
@@ -43,26 +44,41 @@ package body Slurm.Spread_Sheets is
    begin
       while not Input.Eof loop
          Input.Next_Char (C);
-         case C is
-            when  Latin_1.HT =>
+         if Standard_Separator then
+            case C is
+               when  Latin_1.HT =>
+                  Sheet.Cells.Append (New_Cell (Buffer));
+                  Buffer := Null_Unbounded_String;
+               when Latin_1.LF =>
+                  if Buffer /= Null_Unbounded_String then
+                     Sheet.Cells.Append (New_Cell (Buffer));
+                     Buffer := Null_Unbounded_String;
+                  end if;
+                  Sheet.Cells.Append (Line_Separator);
+               when Latin_1.Space =>
+                  New_Cell_Pending := True;
+               when others =>
+                  if New_Cell_Pending then
+                     Sheet.Cells.Append (New_Cell (Buffer));
+                     Buffer := Null_Unbounded_String;
+                     New_Cell_Pending := False;
+                  end if;
+                  Append (Buffer, C);
+            end case;
+         else
+            if C = Field_Separator then
                Sheet.Cells.Append (New_Cell (Buffer));
                Buffer := Null_Unbounded_String;
-            when Latin_1.LF =>
+            elsif C = Latin_1.LF then
                if Buffer /= Null_Unbounded_String then
                   Sheet.Cells.Append (New_Cell (Buffer));
                   Buffer := Null_Unbounded_String;
                end if;
                Sheet.Cells.Append (Line_Separator);
-            when Latin_1.Space =>
-               New_Cell_Pending := True;
-            when others =>
-               if New_Cell_Pending then
-                  Sheet.Cells.Append (New_Cell (Buffer));
-                  Buffer := Null_Unbounded_String;
-                  New_Cell_Pending := False;
-               end if;
+            else
                Append (Buffer, C);
-         end case;
+            end if;
+         end if;
       end loop;
    end Parse;
 
