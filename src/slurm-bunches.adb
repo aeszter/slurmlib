@@ -114,6 +114,7 @@ package body Slurm.Bunches is
                Element.Waiting := Element.Waiting + 1;
             end if;
          end if;
+         Element.Record_Error ("found state " & states'Image (Get_State (J)));
       end Update_Node_Counts;
 
    begin
