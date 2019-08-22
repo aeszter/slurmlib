@@ -19,6 +19,7 @@ package Slurm.Bunches is
    function Get_Total_Jobs (B : Bunch) return Natural;
    function Get_Waiting_Jobs (B : Bunch) return Natural;
    function Get_Depending_Jobs (B : Bunch) return Natural;
+   function Get_Other_Jobs (B : Bunch) return Natural;
 
    function New_Bunch (Requirements : Set_Of_Requirements) return Bunch;
    procedure Init (Requirements : in out Set_Of_Requirements;
@@ -40,6 +41,7 @@ private
    type Bunch is new Slurm.Loggers.Logger with record
       Requirements : Set_Of_Requirements;
       Total, Waiting, Dependency : Natural;
+      Other_State : Natural;
    end record;
 
    package Lists is new Ada.Containers.Ordered_Maps (Key_Type     => Set_Of_Requirements,
