@@ -1,4 +1,3 @@
-with Slurm.Jobs;
 with Slurm.Nodes; use Slurm.Nodes;
 with Slurm.Utils; use Slurm.Utils;
 with Slurm.Tres;
@@ -215,8 +214,7 @@ package body Slurm.Nodegroups is
       end Update_Slot_And_Node_Count;
 
    begin
-      Add_Jobs (From => Jobs.Load_Jobs,
-                To   => Node_List);
+      Add_Jobs (To => Node_List);
       Group_List.Clear;
       Position :=  First (Node_List);
       nodes :

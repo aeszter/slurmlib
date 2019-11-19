@@ -431,56 +431,48 @@ package body Slurm.Jobs is
    pragma Import (C, getgrgid, "getgrgid");
 
    procedure Init (J : out Job; Ptr : job_info_ptr);
-   function Build_List (Buffer : aliased job_info_msg_ptr) return List;
+   procedure Build_List (Buffer : aliased job_info_msg_ptr);
 
-   procedure Append (Collection : in out List; Item : Job) is
-   begin
-      Collection.Container.Insert (Get_ID (Item), Item);
-   end Append;
+   The_Map : Lists.Map;
+   The_List : Sortable_Lists.List;
 
-   function Build_List (Buffer : aliased job_info_msg_ptr) return List is
+--     procedure Append (Collection : in out List; Item : Job) is
+--     begin
+--        Collection.Container.Insert (Get_ID (Item), Item);
+--     end Append;
+
+   procedure Build_List (Buffer : aliased job_info_msg_ptr) is
+      procedure Add_One (Position : Lists.Cursor);
+
       use job_info_ptrs;
       Job_Ptr : job_info_ptr;
       J       : Job;
-      Result : List;
+
+      procedure Add_One (Position : Lists.Cursor) is
+      begin
+         The_List.Append (New_Item => Lists.Key (Position));
+      end Add_One;
+
    begin
       Job_Ptr := Buffer.job_array;
       for I in 1 .. Buffer.record_count loop
          Init (J, Job_Ptr);
-         Result.Container.Insert (Get_ID (J), J);
+         The_Map.Insert (Get_ID (J), J);
          Increment (Job_Ptr);
       end loop;
       slurm_free_job_info_msg (Buffer);
-      return Result;
+
+      The_Map.Iterate (Add_One'Access);
    end Build_List;
 
-   overriding function Element (Position : Cursor) return Job is
+   function Element (Position : Cursor) return Job is
    begin
-      return Lists.Element (Lists.Cursor (Position));
+      return Get_Job (Sortable_Lists.Element (Sortable_Lists.Cursor (Position)));
    end Element;
 
-   function Extract (Source   : List;
-                     Selector : not null access function (J : Job) return Boolean)
-                     return List is
-      procedure Conditional_Copy (Position : Cursor);
-      Result : List;
-
-      procedure Conditional_Copy (Position : Cursor) is
-         J : Job := Element (Position);
-      begin
-         if Selector (J) then
-            Append (Result, J);
-         end if;
-      end Conditional_Copy;
-
+   function First return Cursor is
    begin
-      Iterate (Source, Conditional_Copy'Access);
-      return Result;
-   end Extract;
-
-   function First (Collection : List) return Cursor is
-   begin
-      return Cursor (Collection.Container.First);
+      return Cursor (The_List.First);
    end First;
 
    function Get_Admin_Comment (J : Job) return String is
@@ -533,10 +525,10 @@ package body Slurm.Jobs is
       return J.ID;
    end Get_ID;
 
-   function Get_Job (Collection : List; ID : Natural) return Job is
+   function Get_Job (ID : Natural) return Job is
    begin
-      if Collection.Container.Contains (ID) then
-         return Collection.Container.Element (ID);
+      if The_Map.Contains (ID) then
+         return The_Map.Element (ID);
       end if;
       raise Constraint_Error with "Job not found";
    end Get_Job;
@@ -626,12 +618,11 @@ package body Slurm.Jobs is
       return J.Submission_Time;
    end Get_Submission_Time;
 
-   procedure Get_Summary (Collection : List;
-                          Jobs, Tasks : out State_Count) is
-      procedure Increment (Position : Cursor);
+   procedure Get_Summary (Jobs, Tasks : out State_Count) is
+      procedure Increment (Position : Lists.Cursor);
 
-      procedure Increment (Position : Cursor) is
-         J : Job := Element (Position);
+      procedure Increment (Position : Lists.Cursor) is
+         J : Job := Lists.Element (Position);
       begin
          Jobs (J.State) :=  Jobs (J.State) + 1;
          Tasks (J.State) := Tasks (J.State) + J.Tasks;
@@ -640,7 +631,7 @@ package body Slurm.Jobs is
    begin
       Jobs := (others => 0);
       Tasks := (others => 0);
-      Iterate (Collection, Increment'Access);
+      The_Map.Iterate (Increment'Access);
    end Get_Summary;
 
    function Get_Tasks (J : Job) return Positive is
@@ -695,7 +686,7 @@ package body Slurm.Jobs is
 
    overriding function Has_Element (Position : Cursor) return Boolean is
    begin
-      return Lists.Has_Element (Lists.Cursor (Position));
+      return Sortable_Lists.Has_Element (Sortable_Lists.Cursor (Position));
    end Has_Element;
 
    function Has_Error (J : Job) return Boolean is
@@ -802,19 +793,18 @@ package body Slurm.Jobs is
       return J.State = JOB_RUNNING;
    end Is_Running;
 
-   procedure Iterate (Collection : List;
-                      Process    : not null access procedure (Position : Cursor)) is
-      procedure Wrapper (Position : Lists.Cursor);
+   procedure Iterate (Process : not null access procedure (J : Job)) is
+      procedure Wrapper (Position : Sortable_Lists.Cursor);
 
-      procedure Wrapper (Position : Lists.Cursor) is
+      procedure Wrapper (Position : Sortable_Lists.Cursor) is
       begin
-         Process (Cursor (Position));
+         Process (Get_Job (Sortable_Lists.Element (Position)));
       end Wrapper;
    begin
-      Collection.Container.Iterate (Wrapper'Access);
+      The_List.Iterate (Wrapper'Access);
    end Iterate;
 
-   function Load_Jobs return List is
+   procedure Load_Jobs is
       use Slurm.Errors;
       use job_info_ptrs;
       E : Error;
@@ -834,10 +824,10 @@ package body Slurm.Jobs is
                raise Constraint_Error with Get_Error (E);
          end case;
       end if;
-      return Build_List (Buffer);
+      Build_List (Buffer);
    end Load_Jobs;
 
-   function Load_User (User : String) return List is
+   procedure Load_User (User : String) is
       use Slurm.Errors;
       use job_info_ptrs;
       uid : uid_t;
@@ -864,13 +854,86 @@ package body Slurm.Jobs is
                raise Constraint_Error with Get_Error (E);
          end case;
       end if;
-      return Build_List (Buffer);
+      Build_List (Buffer);
    end Load_User;
 
    overriding procedure Next (Position : in out Cursor) is
    begin
-      Lists.Next (Lists.Cursor (Position));
+      Sortable_Lists.Next (Sortable_Lists.Cursor (Position));
    end Next;
+
+   procedure Pick (Selector : not null access function (J : Job) return Boolean) is
+      procedure Conditional_Copy (Position : Lists.Cursor);
+      Result : Lists.Map;
+
+      procedure Conditional_Copy (Position : Lists.Cursor) is
+         J : Job := Lists.Element (Position);
+      begin
+         if Selector (J) then
+            Result.Insert (Get_ID (J), J);
+         end if;
+      end Conditional_Copy;
+
+   begin
+      The_Map.Iterate (Conditional_Copy'Access);
+      The_Map := Result;
+   end Pick;
+
+   function Precedes_By_Owner (Left, Right : Positive) return Boolean is
+   begin
+      return  Get_Job (Left).Owner <  Get_Job (Right).Owner;
+   end Precedes_By_Owner;
+
+   function Precedes_By_Starttime (Left, Right : Positive) return Boolean is
+      use type Ada.Calendar.Time;
+   begin
+      return  Get_Job (Left).Start_Time < Get_Job (Right).Start_Time;
+   end Precedes_By_Starttime;
+
+   function Precedes_By_State (Left, Right : Positive) return Boolean is
+   begin
+      return  Get_Job (Left). State < Get_Job (Right).State;
+   end Precedes_By_State;
+
+   function Precedes_By_Submission (Left, Right : Positive) return Boolean is
+      use type Ada.Calendar.Time;
+   begin
+      return  Get_Job (Left).Submission_Time < Get_Job (Right).Submission_Time;
+   end Precedes_By_Submission;
+
+   function Precedes_By_Total_Priority (Left, Right : Positive) return Boolean is
+   begin
+      return  Get_Job (Left).Priority < Get_Job (Right).Priority;
+   end Precedes_By_Total_Priority;
+
+   function Precedes_By_Walltime (Left, Right : Positive) return Boolean is
+   begin
+      return  Get_Job (Left).Walltime < Get_Job (Right).Walltime;
+   end Precedes_By_Walltime;
+
+   procedure Sort (By, Direction : String) is
+   begin
+      if By = "Number" then
+         Sorting_By_ID.Sort (The_List);
+      elsif By = "Owner" then
+         Sorting_By_Owner.Sort (The_List);
+      elsif By = "Submitted" then
+         Sorting_By_Submission.Sort (The_List);
+      elsif By = "State" then
+         Sorting_By_State.Sort (The_List);
+      elsif  By = "Walltime" then
+         Sorting_By_Walltime.Sort (The_List);
+      elsif  By = "Start" then
+         Sorting_By_Starttime.Sort (The_List);
+      elsif  By = "Total" then
+         Sorting_By_Total_Priority.Sort (The_List);
+      else
+         raise Constraint_Error with "unsupported sort field " & By;
+      end if;
+      if Direction = "dec" then
+         The_List.Reverse_Elements;
+      end if;
+   end Sort;
 
    function Walltime (J : Job) return Duration is
       use Ada.Calendar;
