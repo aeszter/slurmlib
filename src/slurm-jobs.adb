@@ -431,29 +431,25 @@ package body Slurm.Jobs is
    pragma Import (C, getgrgid, "getgrgid");
 
    procedure Init (J : out Job; Ptr : job_info_ptr);
-   procedure Build_List (Buffer : aliased job_info_msg_ptr);
+   procedure Build_Map (Buffer : aliased job_info_msg_ptr);
+   procedure Build_Sorted_List;
 
    The_Map : Lists.Map;
    The_List : Sortable_Lists.List;
 
---     procedure Append (Collection : in out List; Item : Job) is
---     begin
---        Collection.Container.Insert (Get_ID (Item), Item);
---     end Append;
+   Loaded : Boolean := False;
+   -- Have Jobs been loaded? Then The_Map and The_List can be used
+   -- as is. Otherwise, Load_Jobs first.
 
-   procedure Build_List (Buffer : aliased job_info_msg_ptr) is
-      procedure Add_One (Position : Lists.Cursor);
+   procedure Build_Map (Buffer : aliased job_info_msg_ptr) is
 
       use job_info_ptrs;
       Job_Ptr : job_info_ptr;
       J       : Job;
 
-      procedure Add_One (Position : Lists.Cursor) is
-      begin
-         The_List.Append (New_Item => Lists.Key (Position));
-      end Add_One;
-
    begin
+      The_Map.Clear;
+      The_List.Clear;
       Job_Ptr := Buffer.job_array;
       for I in 1 .. Buffer.record_count loop
          Init (J, Job_Ptr);
@@ -462,8 +458,22 @@ package body Slurm.Jobs is
       end loop;
       slurm_free_job_info_msg (Buffer);
 
+      Build_Sorted_List;
+      Loaded := True;
+   end Build_Map;
+
+   procedure Build_Sorted_List is
+      procedure Add_One (Position : Lists.Cursor);
+
+      procedure Add_One (Position : Lists.Cursor) is
+      begin
+         The_List.Append (New_Item => Lists.Key (Position));
+      end Add_One;
+
+   begin
+      The_List.Clear;
       The_Map.Iterate (Add_One'Access);
-   end Build_List;
+   end Build_Sorted_List;
 
    function Element (Position : Cursor) return Job is
    begin
@@ -472,6 +482,9 @@ package body Slurm.Jobs is
 
    function First return Cursor is
    begin
+      if not Loaded then
+         Load_Jobs;
+      end if;
       return Cursor (The_List.First);
    end First;
 
@@ -527,6 +540,9 @@ package body Slurm.Jobs is
 
    function Get_Job (ID : Natural) return Job is
    begin
+      if not Loaded then
+         Load_Jobs;
+      end if;
       if The_Map.Contains (ID) then
          return The_Map.Element (ID);
       end if;
@@ -801,6 +817,9 @@ package body Slurm.Jobs is
          Process (Get_Job (Sortable_Lists.Element (Position)));
       end Wrapper;
    begin
+      if not Loaded then
+         Load_Jobs;
+      end if;
       The_List.Iterate (Wrapper'Access);
    end Iterate;
 
@@ -824,7 +843,7 @@ package body Slurm.Jobs is
                raise Constraint_Error with Get_Error (E);
          end case;
       end if;
-      Build_List (Buffer);
+      Build_Map (Buffer);
    end Load_Jobs;
 
    procedure Load_User (User : String) is
@@ -854,7 +873,7 @@ package body Slurm.Jobs is
                raise Constraint_Error with Get_Error (E);
          end case;
       end if;
-      Build_List (Buffer);
+      Build_Map (Buffer);
    end Load_User;
 
    overriding procedure Next (Position : in out Cursor) is
@@ -875,8 +894,12 @@ package body Slurm.Jobs is
       end Conditional_Copy;
 
    begin
+      if not Loaded then
+         Load_Jobs;
+      end if;
       The_Map.Iterate (Conditional_Copy'Access);
       The_Map := Result;
+      Build_Sorted_List;
    end Pick;
 
    function Precedes_By_Owner (Left, Right : Positive) return Boolean is
@@ -913,6 +936,9 @@ package body Slurm.Jobs is
 
    procedure Sort (By, Direction : String) is
    begin
+      if not Loaded then
+         Load_Jobs;
+      end if;
       if By = "Number" then
          Sorting_By_ID.Sort (The_List);
       elsif By = "Owner" then
