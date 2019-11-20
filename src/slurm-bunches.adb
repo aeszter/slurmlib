@@ -105,7 +105,6 @@ package body Slurm.Bunches is
       J : Job;
       Position : Slurm.Jobs.Cursor;
       Bunch_List : List;
-      Job_List   : Jobs.List := Jobs.Load_Jobs;
       Requirements : Set_Of_Requirements;
 
       procedure Update_Node_Counts (Key : Set_Of_Requirements; Element : in out Bunch) is
@@ -126,8 +125,9 @@ package body Slurm.Bunches is
       end Update_Node_Counts;
 
    begin
+      Jobs.Load_Jobs;
       Bunch_List.Clear;
-      Position := First (Job_List);
+      Position := Jobs.First;
       while Has_Element (Position) loop
          J := Element (Position);
          if not J.Is_Running

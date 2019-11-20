@@ -6,6 +6,7 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Slurm.Loggers;
 with Slurm.Node_Properties;
 with Slurm.Utils; use Slurm.Utils;
+with Ada.Containers.Doubly_Linked_Lists;
 
 package Slurm.Jobs is
 --      slurm_pid2jobid - For a given process ID on a node get the corresponding Slurm job ID.
@@ -300,16 +301,15 @@ package Slurm.Jobs is
                          );
 
    type Job is new Loggers.Logger with private;
-   type List is private;
    type Cursor is private;
    function Element (Position : Cursor) return Job;
    function Has_Element (Position : Cursor) return Boolean;
-   function First (Collection : List) return Cursor;
+   function First return Cursor;
    procedure Next (Position : in out Cursor);
-   procedure Append (Collection : in out List; Item : Job);
+--   procedure Append (Collection : in out List; Item : Job);
 
-   procedure Iterate (Collection : List;
-                      Process    : not null access procedure (Position : Cursor));
+   procedure Iterate (Process : not null access procedure (J : Job));
+   procedure Sort (By, Direction : String);
    function Get_Alloc_Node (J : Job) return String;
    function Get_Command (J : Job) return String;
    function Has_Admin_Comment (J : Job) return Boolean;
@@ -357,16 +357,13 @@ package Slurm.Jobs is
    function Is_Running (J : Job) return Boolean;
    function Has_Share (J : Job) return Boolean;
 
-   function Extract (Source   : List;
-                     Selector : not null access function (J : Job) return Boolean)
-                     return List;
+   procedure Pick (Selector : not null access function (J : Job) return Boolean);
 
-   function Load_Jobs return List;
-   function Load_User (User : String) return List;
+   procedure Load_Jobs;
+   procedure Load_User (User : String);
 
-   procedure Get_Summary (Collection : List;
-                          Jobs, Tasks : out State_Count);
-   function Get_Job (Collection : List; ID : Natural) return Job;
+   procedure Get_Summary (Jobs, Tasks : out State_Count);
+   function Get_Job (ID : Natural) return Job;
 
 private
 
@@ -404,11 +401,31 @@ private
       Tasks_Per_Socket, Tasks_Per_Board : Natural;
    end record;
 
+   package Sortable_Lists is new ada.Containers.Doubly_Linked_Lists (element_type => Positive);
+
    package Lists is new ada.Containers.Ordered_Maps (Element_Type => Job,
-                                                    Key_Type => Positive);
-   type Cursor is new Lists.Cursor;
-   type List is record
-      Container : Lists.Map;
-   end record;
+                                                     Key_Type     => Positive);
+   type Cursor is new Sortable_Lists.Cursor;
+
+   function Precedes_By_Submission (Left, Right : Positive) return Boolean;
+   function Precedes_By_State (Left, Right : Positive) return Boolean;
+   function Precedes_By_Starttime (Left, Right : Positive) return Boolean;
+   function Precedes_By_Walltime (Left, Right : Positive) return Boolean;
+   function Precedes_By_Total_Priority (Left, Right : Positive) return Boolean;
+   function Precedes_By_Owner (Left, Right : Positive) return Boolean;
+
+   package Sorting_By_ID is new Sortable_Lists.Generic_Sorting;
+   package Sorting_By_Submission is new Sortable_Lists.Generic_Sorting
+     ("<" => Precedes_By_Submission);
+   package Sorting_By_State is new Sortable_Lists.Generic_Sorting
+     ("<" => Precedes_By_State);
+   package Sorting_By_Starttime is new Sortable_Lists.Generic_Sorting
+     ("<" => Precedes_By_Starttime);
+   package Sorting_By_Walltime is new Sortable_Lists.Generic_Sorting
+     ("<" => Precedes_By_Walltime);
+   package Sorting_By_Total_Priority is new Sortable_Lists.Generic_Sorting
+     ("<" => Precedes_By_Total_Priority);
+   package Sorting_By_Owner is new Sortable_Lists.Generic_Sorting
+     ("<" => Precedes_By_Owner);
 
 end Slurm.Jobs;

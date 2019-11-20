@@ -8,7 +8,6 @@ with Slurm.Utils; use Slurm.Utils;
 with Slurm.Gres;
 with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Ordered_Sets;
-with Slurm.Jobs;
 with Slurm.Tres;
 
 package Slurm.Nodes is
@@ -99,8 +98,8 @@ package Slurm.Nodes is
 
    function Get_Node (Collection : List; Name : String) return Node;
 
-   procedure Add_Jobs (From : Slurm.Jobs.List; To : in out Node);
-   procedure Add_Jobs (From : Slurm.Jobs.List; To : in out List);
+   procedure Add_Jobs (To : in out Node);
+   procedure Add_Jobs (To : in out List);
 
 private
 
