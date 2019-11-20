@@ -7,6 +7,7 @@ with Slurm.General;
 with Slurm.Utils; use Slurm.Utils;
 with Ada.Calendar;
 with Slurm.Tres; use Slurm.Tres;
+with Slurm.Jobs;
 
 package body Slurm.Nodes is
 
@@ -112,12 +113,11 @@ package body Slurm.Nodes is
    procedure Init (N : out Node; Ptr : node_info_ptr);
    function Build_List (Buffer : aliased node_info_msg_ptr) return List;
 
-   procedure Add_Jobs (From : Slurm.Jobs.List; To : in out Node) is
+   procedure Add_Jobs (To : in out Node) is
       use Slurm.Jobs;
-      procedure Attach_Job_To_Node (Position : Jobs.Cursor);
+      procedure Attach_Job_To_Node (J : Job);
 
-      procedure Attach_Job_To_Node (Position : Jobs.Cursor) is
-         J : Job := Element (Position);
+      procedure Attach_Job_To_Node (J : Job) is
       begin
          if Has_Node (J, Get_Name (To)) then
             To.Jobs.Include (Get_ID (J));
@@ -125,13 +125,14 @@ package body Slurm.Nodes is
       end Attach_Job_To_Node;
 
    begin
-      Iterate (From, Attach_Job_To_Node'Access);
+      Jobs.Load_Jobs;
+      Jobs.Iterate (Attach_Job_To_Node'Access);
    end Add_Jobs;
 
-   procedure Add_Jobs (From : Slurm.Jobs.List; To : in out List) is
+   procedure Add_Jobs (To : in out List) is
       use Slurm.Jobs;
       procedure Add_One_Job (Key : Node_Name; N : in out Node);
-      procedure Attach_Job_To_Nodes (Position : Jobs.Cursor);
+      procedure Attach_Job_To_Nodes (J : Job);
       procedure Attach_Job (Position : Name_Sets.Cursor);
 
       ID : Natural;
@@ -158,8 +159,7 @@ package body Slurm.Nodes is
          end if;
       end Attach_Job;
 
-      procedure Attach_Job_To_Nodes (Position : Jobs.Cursor) is
-         J : Job := Element (Position);
+      procedure Attach_Job_To_Nodes (J : Job) is
          Nodes : Name_Set := Get_Nodes (J);
       begin
          ID := Get_ID (J);
@@ -172,7 +172,8 @@ package body Slurm.Nodes is
       end Attach_Job_To_Nodes;
 
    begin
-      Iterate (From, Attach_Job_To_Nodes'Access);
+      Load_Jobs;
+      Jobs.Iterate (Attach_Job_To_Nodes'Access);
    end Add_Jobs;
 
    procedure Append (Collection : in out List; Item : Node) is

@@ -42,6 +42,11 @@ package body Slurm.Bunches is
       return To_String (Requirements.Gres);
    end Get_Gres;
 
+   function Get_Other_Jobs (B : Bunch) return Natural is
+   begin
+      return B.Other_State;
+   end Get_Other_Jobs;
+
    function Get_Total_Jobs (B : Bunch) return Natural is
    begin
       return B.Total;
@@ -100,7 +105,6 @@ package body Slurm.Bunches is
       J : Job;
       Position : Slurm.Jobs.Cursor;
       Bunch_List : List;
-      Job_List   : Jobs.List := Jobs.Load_Jobs;
       Requirements : Set_Of_Requirements;
 
       procedure Update_Node_Counts (Key : Set_Of_Requirements; Element : in out Bunch) is
@@ -113,15 +117,22 @@ package body Slurm.Bunches is
             else
                Element.Waiting := Element.Waiting + 1;
             end if;
+         else
+            Element.Record_Error ("found state " & states'Image (Get_State (J))
+                                  & "; see Bug #3262");
+            Element.Other_State := Element.Other_State + 1;
          end if;
       end Update_Node_Counts;
 
    begin
+      Jobs.Load_Jobs;
       Bunch_List.Clear;
-      Position := First (Job_List);
+      Position := Jobs.First;
       while Has_Element (Position) loop
          J := Element (Position);
-         if not J.Is_Running then
+         if not J.Is_Running
+           and then Get_State (J) /= JOB_COMPLETE
+         then
             Requirements.Gres := To_Unbounded_String (Get_Gres (J));
             Requirements.TRES := To_Unbounded_String (Get_TRES_Request (J));
             Requirements.CPUs := Get_CPUs (J);
@@ -142,6 +153,7 @@ package body Slurm.Bunches is
                     Total      => 0,
                     Waiting    => 0,
                     Dependency => 0,
+                    Other_State => 0,
                    Requirements => Requirements);
    end New_Bunch;
 
