@@ -119,6 +119,7 @@ package body Slurm.Bunches is
             end if;
          else
             Element.Record_Error ("found state " & states'Image (Get_State (J))
+                                    & " in job " & Integer'Image (Get_ID (J))
                                   & "; see Bug #3262");
             Element.Other_State := Element.Other_State + 1;
          end if;
