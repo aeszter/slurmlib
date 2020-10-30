@@ -96,9 +96,6 @@ package body Slurm.Jobs is
       num_cpus               : uint32_t; -- minimum number of cpus required by job
       num_nodes              : uint32_t; -- minimum number of nodes required by job
       num_tasks              : uint32_t; -- requested task count
-      pack_job_id            : uint32_t; -- lead job ID of pack job leader
-      pack_job_id_set        : chars_ptr; -- job IDs for all components
-      pack_job_offset        : uint32_t;  -- pack job index
       partition              : chars_ptr; -- name of assigned partition
       pn_min_memory          : uint64_t;  -- minimum real memory per node, default=0
       pn_min_cpus            : uint16_t;  -- minimum # CPUs per node, default=0
@@ -152,6 +149,7 @@ package body Slurm.Jobs is
       tres_freq              : chars_ptr;
       tres_per_job           : chars_ptr;
       tres_per_node          : chars_ptr;
+      tres_per_socket        : chars_ptr;
       tres_per_task          : chars_ptr;
 
       tres_req_str           : chars_ptr;     -- tres reqeusted in the job
