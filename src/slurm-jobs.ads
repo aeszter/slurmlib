@@ -56,6 +56,7 @@ package Slurm.Jobs is
         WAIT_NODE_NOT_AVAIL,    -- required node is DOWN or DRAINED */
         WAIT_HELD_USER,         -- job is held by user */
         WAIT_FRONT_END,         -- Front end nodes are DOWN */
+        FAIL_DEFER,
         FAIL_DOWN_PARTITION,    -- partition for job is DOWN */
         FAIL_DOWN_NODE,         -- some node in the allocation failed */
         FAIL_BAD_CONSTRAINTS,   -- constraints can not be satisfied */

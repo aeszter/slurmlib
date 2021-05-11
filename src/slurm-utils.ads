@@ -9,7 +9,7 @@ with Ada.Containers.Ordered_Sets;
 with Ada.Containers.Doubly_Linked_Lists;
 
 package Slurm.Utils is
-   Version : String := "v0.6";
+   Version : String := "v0.7";
    type Tri_State is (False, True, Undecided);
    type User_Name is new String (1 .. 8);
 
@@ -23,7 +23,7 @@ package Slurm.Utils is
    type Usage_Number is delta 0.0001 digits 18;
    type Usage_Integer is range 0 .. 10 ** 12;
 
-   type Gigs is delta 0.001 digits 7;
+   type Gigs is delta 0.001 digits 9;
    function To_String (Memory : Gigs) return String;
    function MiB_To_Gigs (Source : Slurm.C_Types.uint64_t) return Gigs;
    function MiB_To_Gigs (Source : Slurm.C_Types.uint32_t) return Gigs;

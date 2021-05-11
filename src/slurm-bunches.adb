@@ -119,6 +119,7 @@ package body Slurm.Bunches is
             end if;
          else
             Element.Record_Error ("found state " & states'Image (Get_State (J))
+                                    & " in job " & Integer'Image (Get_ID (J))
                                   & "; see Bug #3262");
             Element.Other_State := Element.Other_State + 1;
          end if;
@@ -132,6 +133,7 @@ package body Slurm.Bunches is
          J := Element (Position);
          if not J.Is_Running
            and then Get_State (J) /= JOB_COMPLETE
+           and then Get_State (J) /= JOB_OOM
          then
             Requirements.Gres := To_Unbounded_String (Get_Gres (J));
             Requirements.TRES := To_Unbounded_String (Get_TRES_Request (J));

@@ -18,11 +18,13 @@ package body Slurm.Nodes is
 
    type node_info is record
       arch              : chars_ptr;                -- computer architecture
+      bcast_address     : chars_ptr;
       boards            : uint16_t;        -- total number of boards per node
       boot_time         : time_t;      -- time of node boot
       cluster_name      : chars_ptr;
       cores             : uint16_t;         -- number of cores per socket
       core_spec_cnt     : uint16_t;      -- number of specialized cores on node
+      cpu_bind          : uint32_t;
       cpu_load          : uint32_t;      -- CPU load * 100
       free_mem          : uint64_t;      -- free memory in MiB
       cpus              : uint16_t;      -- configured count of cpus running on
@@ -40,6 +42,7 @@ package body Slurm.Nodes is
       mcs_label         : chars_ptr;   -- mcs label if mcs plugin in use
       mem_spec_limit    : uint64_t; -- MB memory limit for specialization
       name              : chars_ptr;         -- node name to slurm
+      next_state        : uint32_t;
       node_addr         : chars_ptr;  -- communication name (optional)
       node_hostname     : chars_ptr;      -- node's hostname (optional)
       node_state        : uint32_t;  -- see enum node_states
@@ -83,7 +86,6 @@ package body Slurm.Nodes is
 
    type node_info_msg_t is record
       last_update : time_t;
-      node_scaling : uint32_t;
       record_count : uint32_t;
       node_array   : node_info_ptr;
    end record;
@@ -567,7 +569,7 @@ package body Slurm.Nodes is
       E : Error;
       Buffer : aliased node_info_msg_ptr;
    begin
-      if Slurm.General.API_Version /= 16#200000# then
+      if Slurm.General.API_Version /= 16#230000# then
          raise Program_Error with "unsupported Slurm API version";
       end if;
       if slurm_load_node (update_time       => 0,
