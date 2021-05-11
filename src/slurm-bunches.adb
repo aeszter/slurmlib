@@ -133,6 +133,7 @@ package body Slurm.Bunches is
          J := Element (Position);
          if not J.Is_Running
            and then Get_State (J) /= JOB_COMPLETE
+           and then Get_State (J) /= JOB_OOM
          then
             Requirements.Gres := To_Unbounded_String (Get_Gres (J));
             Requirements.TRES := To_Unbounded_String (Get_TRES_Request (J));
