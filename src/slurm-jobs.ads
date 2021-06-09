@@ -342,7 +342,7 @@ package Slurm.Jobs is
    function Get_State_Description (J : Job) return String;
    function Get_State_Reason (J : Job) return state_reasons;
    function Get_Submission_Time (J : Job) return Ada.Calendar.Time;
-   function Get_Tasks (J : Job) return Positive;
+   function Get_Tasks (J : Job) return Natural;
    function Get_Tasks_Per_Core (J : Job) return Positive;
    function Get_Tasks_Per_Node (J : Job) return Positive;
    function Get_Tasks_Per_Socket (J : Job) return Positive;
