@@ -57,6 +57,7 @@ package Slurm.Nodes is
    function Get_Used_CPUs (N : Node) return Natural;
    function Get_Features (N : Node) return String;
    function Get_Free_Memory (N : Node) return String;
+   function Get_Load (N : Node) return Usage_Number;
    function Get_Memory (N : Node) return String;
    function Get_Name (N : Node) return Node_Name;
    function Get_OS (N : Node) return String;

@@ -298,6 +298,11 @@ package body Slurm.Nodes is
       return To_String (N.Free_Memory);
    end Get_Free_Memory;
 
+   function Get_Load (N : Node) return Usage_Number is
+   begin
+      return N.Load;
+   end Get_Load;
+
    function Get_Memory (N : Node) return String is
    begin
       return To_String (Get_Memory (N.Properties));

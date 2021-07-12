@@ -669,7 +669,7 @@ package body Slurm.Jobs is
       The_Map.Iterate (Increment'Access);
    end Get_Summary;
 
-   function Get_Tasks (J : Job) return Positive is
+   function Get_Tasks (J : Job) return Natural is
    begin
       return J.Tasks;
    end Get_Tasks;
