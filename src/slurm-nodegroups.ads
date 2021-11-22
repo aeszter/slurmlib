@@ -26,7 +26,7 @@ package Slurm.Nodegroups is
 
    function Load return Summarized_List;
 
-   type State is (total, available, used, reserved, disabled, offline);
+   type State is (total, available, used, reserved, draining, drained, offline);
    type State_Count is array (State) of Countable_Map;
 
    function To_String (Source : State) return String;
@@ -45,6 +45,7 @@ package Slurm.Nodegroups is
    function Get_Offline_Nodes (G : Nodegroup) return Natural;
    function Get_Used_Nodes (G : Nodegroup) return Natural;
    function Get_Drained_Nodes (G : Nodegroup) return Natural;
+   function Get_Draining_Nodes (G : Nodegroup) return Natural;
 
    function Get_Available_Cores (G : Nodegroup) return Natural;
    function Get_Total_Cores (G : Nodegroup) return Natural;
@@ -61,7 +62,7 @@ package Slurm.Nodegroups is
 private
    type Nodegroup is new Slurm.Loggers.Logger with record
       Available_Nodes, Total_Nodes,
-      Draining_Nodes,
+      Drained_Nodes, Draining_Nodes,
       Offline_Nodes, Used_Nodes : Countable_Sets.Set;
       Available_CPUs,
       Draining_CPUs,

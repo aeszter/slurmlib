@@ -46,8 +46,13 @@ package body Slurm.Nodegroups is
 
    function Get_Drained_Nodes (G : Nodegroup) return Natural is
    begin
-      return  Natural (G.Draining_Nodes.Length);
+      return  Natural (G.Drained_Nodes.Length);
    end Get_Drained_Nodes;
+
+   function Get_Draining_Nodes (G : Nodegroup) return Natural is
+   begin
+      return  Natural (G.Draining_Nodes.Length);
+   end Get_Draining_Nodes;
 
    function Get_Features (G : Nodegroup) return String is
    begin
@@ -180,13 +185,20 @@ package body Slurm.Nodegroups is
             Group_List.Summary (offline).Include (Key      => Get_Name (N),
                                                   New_Item => Get_CPUs (N));
          elsif Is_Draining (N) then
-            Element.Draining_CPUs.Include (Key      => Get_Name (N),
+            if Get_Used_CPUs (N) > 0 then
+               Element.Draining_CPUs.Include (Key      => Get_Name (N),
                                      New_Item => Get_CPUs (N));
-            Element.Draining_Nodes.Include (Get_Name (N));
-            Group_List.Summary (disabled).Include (Key      => Get_Name (N),
-                                             New_Item => Get_CPUs (N));
+               Element.Draining_Nodes.Include (Get_Name (N));
+               Group_List.Summary (draining).Include (Key      => Get_Name (N),
+                                                   New_Item => Get_CPUs (N));
+            else
+               Element.Drained_Nodes.Include (Get_Name (N));
+               Group_List.Summary (drained).Include (Key      => Get_Name (N),
+                                                   New_Item => Get_CPUs (N));
+            end if;
          else
             if Get_Used_CPUs (N) > 0 then
+
                Element.Used_Nodes.Include (Get_Name (N));
                Element.Used_CPUs.Include (Key => Get_Name (N),
                                     New_Item => Get_Used_CPUs (N));
@@ -265,8 +277,10 @@ package body Slurm.Nodegroups is
             return "Offline";
          when available =>
             return "Available";
-         when disabled =>
-            return "Disabled";
+         when draining =>
+            return "Draining";
+         when drained =>
+            return "Drained";
       end case;
    end To_String;
 
