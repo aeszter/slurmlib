@@ -552,12 +552,13 @@ package body Slurm.Nodes is
       N.GRES_Used.Iterate (Wrapper'Access);
    end Iterate_GRES_Used;
 
-   procedure Iterate_Jobs (N : Node; Process : not null access procedure (ID : Positive)) is
+   procedure Iterate_Jobs (N       : Node;
+                           Process : not null access procedure (ID : Positive; N : Node)) is
       procedure Wrapper (Position : Job_Lists.Cursor);
 
       procedure Wrapper (Position : Job_Lists.Cursor) is
       begin
-         Process (Job_Lists.Element (Position));
+         Process (Job_Lists.Element (Position), N);
       end Wrapper;
 
    begin
