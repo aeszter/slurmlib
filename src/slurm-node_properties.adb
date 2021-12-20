@@ -20,7 +20,7 @@ package body Slurm.Node_Properties is
       elsif Left.Features < Right.Features then
          return True;
       elsif Left.Features > Right.Features then
-         return True;
+         return False;
       elsif Left.TRES < Right.TRES then
          return True;
       elsif Left. TRES > Right.TRES then
