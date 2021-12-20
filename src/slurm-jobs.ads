@@ -324,6 +324,7 @@ package Slurm.Jobs is
    function Get_Group (J : Job) return User_Name;
    function Get_ID (J : Job) return Positive;
    function Get_Name (J : Job) return String;
+   function Get_Batch_Host (J : Job) return Node_Name;
    function Get_Nodes (J : Job) return Hostlist;
    function Has_Node (J : Job; Nodename : Node_Name) return Boolean;
    function Get_Owner (J : Job) return User_Name;
@@ -351,6 +352,7 @@ package Slurm.Jobs is
    function Get_Std_Out (J : Job) return String;
    function Get_Std_Err (J : Job) return String;
    function Get_TRES_Request (J : Job) return String;
+   function Get_TRES_Per_Node (J : Job) return String;
    function Get_TRES_Allocated (J : Job) return String;
    function Get_Working_Directory (J : Job) return String;
    function Has_Error (J : Job) return Boolean;
@@ -370,7 +372,8 @@ private
 
    type Job is new Slurm.Loggers.Logger with record
       Comment, Admin_Comment : Unbounded_String;
-      Alloc_Node  : Unbounded_String;
+      Alloc_Node             : Unbounded_String;
+      Batch_Host  : Node_Name;
       Gres        : Unbounded_String;
       ID          : Positive;
       Name        : Unbounded_String;
@@ -398,6 +401,7 @@ private
       Directory                : Unbounded_String;
       Command                  : Unbounded_String;
       TRES_Request, TRES_Allocated : Unbounded_String;
+      TRES_Per_Node   : Unbounded_String;
       Tasks_Per_Core, Tasks_Per_Node,
       Tasks_Per_Socket, Tasks_Per_Board : Natural;
    end record;

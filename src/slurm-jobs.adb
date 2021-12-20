@@ -517,6 +517,11 @@ package body Slurm.Jobs is
       return To_String (J.Alloc_Node);
    end Get_Alloc_Node;
 
+   function Get_Batch_Host (J : Job) return Node_Name is
+   begin
+      return J.Batch_Host;
+   end Get_Batch_Host;
+
    function Get_Command (J : Job) return String is
    begin
       return To_String (J.Command);
@@ -699,6 +704,11 @@ package body Slurm.Jobs is
       return To_String (J.TRES_Allocated);
    end Get_TRES_Allocated;
 
+   function Get_TRES_Per_Node (J : Job) return String is
+   begin
+      return To_String (J.TRES_Per_Node);
+   end Get_TRES_Per_Node;
+
    function Get_TRES_Request (J : Job) return String is
    begin
       return To_String (J.TRES_Request);
@@ -803,7 +813,7 @@ package body Slurm.Jobs is
          J.Group := To_User_Name (POSIX.To_String (Form_POSIX_String (gr_entry.all.gr_name)));
       end;
       J.Nodes := Slurm.Hostlists.To_Hostlist (To_String (Ptr.all.nodes));
-      J.Batch_Host := Convert_String (Ptr.all.batch_host);
+      J.Batch_Host := Node_Name (Convert_String (Ptr.all.batch_host));
       J.Partition := Convert_String (Ptr.all.partition);
       J.Reservation := Convert_String (Ptr.all.resv_name);
       J.State_Desc := Convert_String (Ptr.all.state_desc);
@@ -816,6 +826,7 @@ package body Slurm.Jobs is
       J.Command := Convert_String (Ptr.all.command);
       J.Directory := Convert_String (Ptr.all.work_dir);
       J.TRES_Request := Convert_String (Ptr.all.tres_req_str);
+      J.TRES_Per_Node := Convert_String (Ptr.all.tres_per_node);
       J.TRES_Allocated := Convert_String (Ptr.all.tres_alloc_str);
    end Init;
 
