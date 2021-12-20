@@ -162,7 +162,7 @@ package body Slurm.Nodes is
       end Attach_Job;
 
       procedure Attach_Job_To_Nodes (J : Job) is
-         Nodes : Name_Set := Get_Nodes (J);
+         Nodes : Hostlist := Get_Nodes (J);
       begin
          ID := Get_ID (J);
          if Is_Running (J) then

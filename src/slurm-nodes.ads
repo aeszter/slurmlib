@@ -9,6 +9,7 @@ with Slurm.Gres;
 with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Ordered_Sets;
 with Slurm.Tres;
+with Slurm.Hostlists; use Slurm.Hostlists;
 
 package Slurm.Nodes is
 

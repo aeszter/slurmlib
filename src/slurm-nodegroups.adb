@@ -170,6 +170,8 @@ package body Slurm.Nodegroups is
       Group_List : Summarized_List;
       Node_List  : Nodes.List := Nodes.Load_Nodes;
       Properties : Set_Of_Properties;
+      Inserted   : Boolean;
+      The_Props : Lists.Cursor;
 
       procedure Update_Slot_And_Node_Count (Key : Set_Of_Properties; Element : in out Nodegroup) is
          pragma Unreferenced (Key);
@@ -225,6 +227,8 @@ package body Slurm.Nodegroups is
 
       end Update_Slot_And_Node_Count;
 
+      use Lists;
+
    begin
       Add_Jobs (To => Node_List);
       Group_List.Clear;
@@ -233,14 +237,21 @@ package body Slurm.Nodegroups is
       while Has_Element (Position) loop
          N := Element (Position);
          Properties := Get_Properties (N);
-         if not Group_List.Contains (Properties) then
-            Group_List.Insert (Properties, New_Nodegroup (Properties));
+         The_Props := Group_List.Find (Properties);
+         if The_Props = Lists.No_Element then
+            Group_List.Insert (Properties, New_Nodegroup (Properties), The_Props, Inserted);
+            if not Inserted then
+               N.Record_Error ("Couldnt insert properties into Nodegroup");
+               raise Constraint_Error;
+            end if;
          end if;
-         Group_List.Update_Element (Group_List.Find (Properties),
+         Group_List.Update_Element (The_Props,
                                     Update_Slot_And_Node_Count'Access);
          Next (Position);
       end loop nodes;
       return Group_List;
+      exception
+         when Constraint_Error => return Group_List;
    end Load;
 
    function New_Nodegroup (Properties : Set_Of_Properties) return Nodegroup is

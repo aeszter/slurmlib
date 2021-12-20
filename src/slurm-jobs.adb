@@ -578,7 +578,7 @@ package body Slurm.Jobs is
       return J.Node_Number;
    end Get_Node_Number;
 
-   function Get_Nodes (J : Job) return Slurm.Node_Properties.Name_Set is
+   function Get_Nodes (J : Job) return Hostlist is
    begin
       return J.Nodes;
    end Get_Nodes;
@@ -730,7 +730,7 @@ package body Slurm.Jobs is
       return False; -- until we figure out what state is equivalent to sge's error state
    end Has_Error;
 
-   function Has_Node (J : Job; Nodename : Slurm.Node_Properties.Node_Name) return Boolean is
+   function Has_Node (J : Job; Nodename : Node_Name) return Boolean is
    begin
       return J.Nodes.Contains (Nodename);
    end Has_Node;
@@ -802,7 +802,8 @@ package body Slurm.Jobs is
          end if;
          J.Group := To_User_Name (POSIX.To_String (Form_POSIX_String (gr_entry.all.gr_name)));
       end;
-      J.Nodes := Slurm.Node_Properties.To_Name_Set (To_String (Ptr.all.nodes));
+      J.Nodes := Slurm.Hostlists.To_Hostlist (To_String (Ptr.all.nodes));
+      J.Batch_Host := Convert_String (Ptr.all.batch_host);
       J.Partition := Convert_String (Ptr.all.partition);
       J.Reservation := Convert_String (Ptr.all.resv_name);
       J.State_Desc := Convert_String (Ptr.all.state_desc);
