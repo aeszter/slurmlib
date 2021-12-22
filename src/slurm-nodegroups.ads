@@ -7,6 +7,7 @@ with Slurm.Gres;
 with Slurm.Utils; use Slurm.Utils;
 with Slurm.Tres;
 with Slurm.Loggers;
+with Slurm.Hostlists; use Slurm.Hostlists;
 
 package Slurm.Nodegroups is
    type Nodegroup is new Slurm.Loggers.Logger with private;

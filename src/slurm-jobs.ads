@@ -4,9 +4,9 @@ with Ada.Containers.Ordered_Maps;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
 with Slurm.Loggers;
-with Slurm.Node_Properties;
 with Slurm.Utils; use Slurm.Utils;
 with Ada.Containers.Doubly_Linked_Lists;
+with Slurm.Hostlists; use Slurm.Hostlists;
 
 package Slurm.Jobs is
 --      slurm_pid2jobid - For a given process ID on a node get the corresponding Slurm job ID.
@@ -324,8 +324,9 @@ package Slurm.Jobs is
    function Get_Group (J : Job) return User_Name;
    function Get_ID (J : Job) return Positive;
    function Get_Name (J : Job) return String;
-   function Get_Nodes (J : Job) return Slurm.Node_Properties.Name_Set;
-   function Has_Node (J : Job; Nodename : Slurm.Node_Properties.Node_Name) return Boolean;
+   function Get_Batch_Host (J : Job) return Node_Name;
+   function Get_Nodes (J : Job) return Hostlist;
+   function Has_Node (J : Job; Nodename : Node_Name) return Boolean;
    function Get_Owner (J : Job) return User_Name;
    function Get_Partition (J : Job) return String;
    function Get_Priority (J : Job) return Natural;
@@ -351,6 +352,7 @@ package Slurm.Jobs is
    function Get_Std_Out (J : Job) return String;
    function Get_Std_Err (J : Job) return String;
    function Get_TRES_Request (J : Job) return String;
+   function Get_TRES_Per_Node (J : Job) return String;
    function Get_TRES_Allocated (J : Job) return String;
    function Get_Working_Directory (J : Job) return String;
    function Has_Error (J : Job) return Boolean;
@@ -370,7 +372,8 @@ private
 
    type Job is new Slurm.Loggers.Logger with record
       Comment, Admin_Comment : Unbounded_String;
-      Alloc_Node  : Unbounded_String;
+      Alloc_Node             : Unbounded_String;
+      Batch_Host  : Node_Name;
       Gres        : Unbounded_String;
       ID          : Positive;
       Name        : Unbounded_String;
@@ -391,13 +394,14 @@ private
       CPUs            : Natural;
       Node_Number     : Natural;
       Dependency      : Unbounded_String;
-      Nodes           : Slurm.Node_Properties.Name_Set;
+      Nodes           : Hostlist;
       Partition       : Unbounded_String;
       Reservation     : Unbounded_String;
       Std_In, Std_Err, Std_Out : Unbounded_String;
       Directory                : Unbounded_String;
       Command                  : Unbounded_String;
       TRES_Request, TRES_Allocated : Unbounded_String;
+      TRES_Per_Node   : Unbounded_String;
       Tasks_Per_Core, Tasks_Per_Node,
       Tasks_Per_Socket, Tasks_Per_Board : Natural;
    end record;

@@ -9,6 +9,7 @@ with Slurm.Gres;
 with Ada.Containers.Ordered_Maps;
 with Ada.Containers.Ordered_Sets;
 with Slurm.Tres;
+with Slurm.Hostlists; use Slurm.Hostlists;
 
 package Slurm.Nodes is
 
@@ -88,7 +89,8 @@ package Slurm.Nodes is
    function Load_Per_Core (N : Node) return Load;
    function Mem_Percentage (N : Node) return Percent;
 
-   procedure Iterate_Jobs (N : Node; Process : not null access procedure (ID : Positive));
+   procedure Iterate_Jobs (N       : Node;
+                           Process : not null access procedure (ID : Positive; N : Node));
    procedure Iterate_Partitions (N : Node; Process : not null access procedure (P : Partition));
    procedure Iterate_GRES (N       : Node;
                            Process : not null access procedure (R : Slurm.Gres.Resource));

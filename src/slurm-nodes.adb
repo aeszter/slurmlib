@@ -162,7 +162,7 @@ package body Slurm.Nodes is
       end Attach_Job;
 
       procedure Attach_Job_To_Nodes (J : Job) is
-         Nodes : Name_Set := Get_Nodes (J);
+         Nodes : Hostlist := Get_Nodes (J);
       begin
          ID := Get_ID (J);
          if Is_Running (J) then
@@ -552,12 +552,13 @@ package body Slurm.Nodes is
       N.GRES_Used.Iterate (Wrapper'Access);
    end Iterate_GRES_Used;
 
-   procedure Iterate_Jobs (N : Node; Process : not null access procedure (ID : Positive)) is
+   procedure Iterate_Jobs (N       : Node;
+                           Process : not null access procedure (ID : Positive; N : Node)) is
       procedure Wrapper (Position : Job_Lists.Cursor);
 
       procedure Wrapper (Position : Job_Lists.Cursor) is
       begin
-         Process (Job_Lists.Element (Position));
+         Process (Job_Lists.Element (Position), N);
       end Wrapper;
 
    begin
