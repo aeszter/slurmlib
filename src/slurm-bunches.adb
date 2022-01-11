@@ -137,6 +137,9 @@ package body Slurm.Bunches is
            and then Get_State (J) /= JOB_FAILED
          then
             Requirements.Gres := To_Unbounded_String (Get_Gres (J));
+            if Requirements.Gres = Null_Unbounded_String then
+               Requirements.Gres := To_Unbounded_String (Get_TRES_Per_Node (J));
+            end if;
             Requirements.TRES := To_Unbounded_String (Get_TRES_Request (J));
             Requirements.CPUs := Get_CPUs (J);
             if not Bunch_List.Contains (Requirements) then
