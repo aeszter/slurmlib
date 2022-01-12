@@ -946,7 +946,13 @@ package body Slurm.Jobs is
 
    function Precedes_By_State (Left, Right : Positive) return Boolean is
    begin
-      return  Get_Job (Left). State < Get_Job (Right).State;
+      if Get_Job (Left). State < Get_Job (Right).State then
+         return True;
+      elsif Get_Job (Left).State > Get_Job (Right).State then
+         return False;
+      else
+         return Get_Job (Left).State_Reason < Get_Job (Right).State_Reason;
+      end if;
    end Precedes_By_State;
 
    function Precedes_By_Submission (Left, Right : Positive) return Boolean is
