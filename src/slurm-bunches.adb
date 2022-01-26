@@ -112,7 +112,9 @@ package body Slurm.Bunches is
       begin
          Element.Total := Element.Total + 1;
          if Is_Pending (J) then
-            if Get_State_Reason (J) = WAIT_DEPENDENCY then
+            if Get_State_Reason (J) = WAIT_DEPENDENCY or else
+              Get_State_Reason (J) = WAIT_ARRAY_TASK_LIMIT
+            then
                Element.Dependency := Element.Dependency + 1;
             else
                Element.Waiting := Element.Waiting + 1;
