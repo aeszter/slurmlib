@@ -370,6 +370,13 @@ package Slurm.Jobs is
    function Get_Job (ID : Natural) return Job;
 
 private
+   function Precedes_By_ID (Left, Right : Job) return Boolean;
+   function Precedes_By_Submission (Left, Right : Job) return Boolean;
+   function Precedes_By_State (Left, Right : Job) return Boolean;
+   function Precedes_By_Starttime (Left, Right : Job) return Boolean;
+   function Precedes_By_Walltime (Left, Right : Job) return Boolean;
+   function Precedes_By_Total_Priority (Left, Right : Job) return Boolean;
+   function Precedes_By_Owner (Left, Right : Job) return Boolean;
 
    type Job is new Slurm.Loggers.Logger with record
       Comment, Admin_Comment : Unbounded_String;
@@ -407,20 +414,14 @@ private
       Tasks_Per_Socket, Tasks_Per_Board : Natural;
    end record;
 
-   package Sortable_Lists is new ada.Containers.Doubly_Linked_Lists (element_type => Positive);
+   package Sortable_Lists is new ada.Containers.Doubly_Linked_Lists (Element_type => Job);
 
    package Lists is new ada.Containers.Ordered_Maps (Element_Type => Job,
                                                      Key_Type     => Positive);
    type Cursor is new Sortable_Lists.Cursor;
 
-   function Precedes_By_Submission (Left, Right : Positive) return Boolean;
-   function Precedes_By_State (Left, Right : Positive) return Boolean;
-   function Precedes_By_Starttime (Left, Right : Positive) return Boolean;
-   function Precedes_By_Walltime (Left, Right : Positive) return Boolean;
-   function Precedes_By_Total_Priority (Left, Right : Positive) return Boolean;
-   function Precedes_By_Owner (Left, Right : Positive) return Boolean;
-
-   package Sorting_By_ID is new Sortable_Lists.Generic_Sorting;
+   package Sorting_By_ID is new Sortable_Lists.Generic_Sorting
+     ("<" => Precedes_By_ID);
    package Sorting_By_Submission is new Sortable_Lists.Generic_Sorting
      ("<" => Precedes_By_Submission);
    package Sorting_By_State is new Sortable_Lists.Generic_Sorting

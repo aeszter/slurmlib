@@ -486,7 +486,7 @@ package body Slurm.Jobs is
 
       procedure Add_One (Position : Lists.Cursor) is
       begin
-         The_List.Append (New_Item => Lists.Key (Position));
+         The_List.Append (New_Item => Lists.Element (Position));
       end Add_One;
 
    begin
@@ -494,9 +494,9 @@ package body Slurm.Jobs is
       The_Map.Iterate (Add_One'Access);
    end Build_Sorted_List;
 
-   function Element (Position : Cursor) return Job is
+   overriding function Element (Position : Cursor) return Job is
    begin
-      return Get_Job (Sortable_Lists.Element (Sortable_Lists.Cursor (Position)));
+      return Sortable_Lists.Element (Sortable_Lists.Cursor (Position));
    end Element;
 
    function First return Cursor is
@@ -567,10 +567,10 @@ package body Slurm.Jobs is
       if not Loaded then
          Load_Jobs;
       end if;
-      if The_Map.Contains (ID) then
-         return The_Map.Element (ID);
-      end if;
-      raise Constraint_Error with "Job not found";
+      return The_Map.Element (ID);
+   exception
+      when Constraint_Error =>
+         raise Constraint_Error with "Job not found";
    end Get_Job;
 
    function Get_Name (J : Job) return String is
@@ -845,7 +845,7 @@ package body Slurm.Jobs is
 
       procedure Wrapper (Position : Sortable_Lists.Cursor) is
       begin
-         Process (Get_Job (Sortable_Lists.Element (Position)));
+         Process (Sortable_Lists.Element (Position));
       end Wrapper;
    begin
       if not Loaded then
@@ -933,42 +933,47 @@ package body Slurm.Jobs is
       Build_Sorted_List;
    end Pick;
 
-   function Precedes_By_Owner (Left, Right : Positive) return Boolean is
+   function Precedes_By_ID (Left, Right : Job) return Boolean is
    begin
-      return  Get_Job (Left).Owner <  Get_Job (Right).Owner;
+      return  Left.ID < Right.ID;
+   end Precedes_By_ID;
+
+   function Precedes_By_Owner (Left, Right : Job) return Boolean is
+   begin
+      return  Left.Owner < Right.Owner;
    end Precedes_By_Owner;
 
-   function Precedes_By_Starttime (Left, Right : Positive) return Boolean is
+   function Precedes_By_Starttime (Left, Right : Job) return Boolean is
       use type Ada.Calendar.Time;
    begin
-      return  Get_Job (Left).Start_Time < Get_Job (Right).Start_Time;
+      return Left.Start_Time < Right.Start_Time;
    end Precedes_By_Starttime;
 
-   function Precedes_By_State (Left, Right : Positive) return Boolean is
+   function Precedes_By_State (Left, Right : Job) return Boolean is
    begin
-      if Get_Job (Left). State < Get_Job (Right).State then
+      if Left.State < Right.State then
          return True;
-      elsif Get_Job (Left).State > Get_Job (Right).State then
+      elsif Left.State > Right.State then
          return False;
       else
-         return Get_Job (Left).State_Reason < Get_Job (Right).State_Reason;
+         return Left.State_Reason < Right.State_Reason;
       end if;
    end Precedes_By_State;
 
-   function Precedes_By_Submission (Left, Right : Positive) return Boolean is
+   function Precedes_By_Submission (Left, Right : Job) return Boolean is
       use type Ada.Calendar.Time;
    begin
-      return  Get_Job (Left).Submission_Time < Get_Job (Right).Submission_Time;
+      return Left.Submission_Time < Right.Submission_Time;
    end Precedes_By_Submission;
 
-   function Precedes_By_Total_Priority (Left, Right : Positive) return Boolean is
+   function Precedes_By_Total_Priority (Left, Right : Job) return Boolean is
    begin
-      return  Get_Job (Left).Priority < Get_Job (Right).Priority;
+      return Left.Priority < Right.Priority;
    end Precedes_By_Total_Priority;
 
-   function Precedes_By_Walltime (Left, Right : Positive) return Boolean is
+   function Precedes_By_Walltime (Left, Right : Job) return Boolean is
    begin
-      return  Get_Job (Left).Walltime < Get_Job (Right).Walltime;
+      return Left.Walltime < Right.Walltime;
    end Precedes_By_Walltime;
 
    function Quota_Inhibited (J : Job) return Boolean is
