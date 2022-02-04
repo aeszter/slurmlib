@@ -47,6 +47,11 @@ package body Slurm.Bunches is
       return B.Other_State;
    end Get_Other_Jobs;
 
+   function Get_Quota_Inhibited_Jobs (B : Bunch) return Natural is
+   begin
+      return B.Quota;
+   end Get_Quota_Inhibited_Jobs;
+
    function Get_Total_Jobs (B : Bunch) return Natural is
    begin
       return B.Total;
@@ -116,6 +121,8 @@ package body Slurm.Bunches is
               Get_State_Reason (J) = WAIT_ARRAY_TASK_LIMIT
             then
                Element.Dependency := Element.Dependency + 1;
+            elsif Quota_Inhibited (J) then
+               Element.Quota := Element.Quota + 1;
             else
                Element.Waiting := Element.Waiting + 1;
             end if;
@@ -161,6 +168,7 @@ package body Slurm.Bunches is
                     Total      => 0,
                     Waiting    => 0,
                     Dependency => 0,
+                    Quota      => 0,
                     Other_State => 0,
                    Requirements => Requirements);
    end New_Bunch;

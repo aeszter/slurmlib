@@ -971,6 +971,11 @@ package body Slurm.Jobs is
       return  Get_Job (Left).Walltime < Get_Job (Right).Walltime;
    end Precedes_By_Walltime;
 
+   function Quota_Inhibited (J : Job) return Boolean is
+   begin
+      return J.State_Reason = WAIT_ASSOC_GRP_JOB;
+   end Quota_Inhibited;
+
    procedure Sort (By, Direction : String) is
    begin
       if not Loaded then

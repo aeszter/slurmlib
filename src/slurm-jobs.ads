@@ -359,6 +359,7 @@ package Slurm.Jobs is
    function Is_Pending (J : Job) return Boolean;
    function Is_Running (J : Job) return Boolean;
    function Has_Share (J : Job) return Boolean;
+   function Quota_Inhibited (J : Job) return Boolean;
 
    procedure Pick (Selector : not null access function (J : Job) return Boolean);
 
