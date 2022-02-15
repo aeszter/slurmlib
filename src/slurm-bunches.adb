@@ -42,6 +42,11 @@ package body Slurm.Bunches is
       return To_String (Requirements.Gres);
    end Get_Gres;
 
+   function Get_Held_Jobs (B : Bunch) return Natural is
+   begin
+      return B.Held;
+   end Get_Held_Jobs;
+
    function Get_Other_Jobs (B : Bunch) return Natural is
    begin
       return B.Other_State;
@@ -123,6 +128,10 @@ package body Slurm.Bunches is
                Element.Dependency := Element.Dependency + 1;
             elsif Quota_Inhibited (J) then
                Element.Quota := Element.Quota + 1;
+            elsif Get_State_Reason (J) = WAIT_HELD_USER or else
+              Get_State_Reason (J) = WAIT_HELD
+            then
+               Element.Held := Element.Held + 1;
             else
                Element.Waiting := Element.Waiting + 1;
             end if;
@@ -169,6 +178,7 @@ package body Slurm.Bunches is
                     Waiting    => 0,
                     Dependency => 0,
                     Quota      => 0,
+                    Held       => 0,
                     Other_State => 0,
                    Requirements => Requirements);
    end New_Bunch;

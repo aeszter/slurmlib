@@ -21,6 +21,7 @@ package Slurm.Bunches is
    function Get_Depending_Jobs (B : Bunch) return Natural;
    function Get_Other_Jobs (B : Bunch) return Natural;
    function Get_Quota_Inhibited_Jobs (B : Bunch) return Natural;
+   function Get_Held_Jobs (B : Bunch) return Natural;
 
    function New_Bunch (Requirements : Set_Of_Requirements) return Bunch;
    procedure Init (Requirements : in out Set_Of_Requirements;
@@ -42,7 +43,7 @@ private
    type Bunch is new Slurm.Loggers.Logger with record
       Requirements : Set_Of_Requirements;
       Total, Waiting, Dependency : Natural;
-      Quota : Natural;
+      Quota, Held : Natural;
       Other_State : Natural;
    end record;
 
