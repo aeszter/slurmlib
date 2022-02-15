@@ -9,7 +9,7 @@ with Ada.Containers.Ordered_Sets;
 with Ada.Containers.Doubly_Linked_Lists;
 
 package Slurm.Utils is
-   Version : String := "0.11";
+   Version : String := "0.12";
    type Tri_State is (False, True, Undecided);
    type User_Name is new String (1 .. 8);
 
