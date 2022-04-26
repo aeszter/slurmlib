@@ -10,6 +10,8 @@ package Slurm.Node_Properties is
    type Set_Of_Properties is private;
    function "<" (Left, Right : Set_Of_Properties) return Boolean;
    pragma Inline ("<");
+   overriding function "=" (Left, Right : Set_Of_Properties) return Boolean;
+   pragma Inline ("<");
 
    function Get_CPUs (Item : Set_Of_Properties) return Natural;
    function Get_Features (From : Set_Of_Properties) return String;

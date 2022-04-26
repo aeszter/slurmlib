@@ -40,6 +40,11 @@ package body Slurm.Tres is
       end if;
    end"<";
 
+   function "=" (Left, Right : List) return Boolean is
+   begin
+      return Lists."=" (Left, Right);
+   end "=";
+
    function ">" (Left, Right : Resource) return Boolean is
    begin
       return Right < Left;

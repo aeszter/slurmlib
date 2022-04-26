@@ -4,16 +4,16 @@ package body Slurm.Gres is
 
    function "<" (Left, Right : Resource) return Boolean is
    begin
-      if Left.Category < Right.Category then
+      if Left.Number < Right.Number then
+         return True;
+      elsif Left.Number > Right.Number then
+         return False;
+      elsif Left.Category < Right.Category then
          return True;
       elsif Left.Category > Right.Category then
          return False;
-      elsif Left.Name < Right.Name then
-         return True;
-      elsif Left.Name > Right.Name then
-         return False;
       else
-         return Left.Number < Right.Number;
+         return Left.Name < Right.Name;
       end if;
    end "<";
 
@@ -43,6 +43,11 @@ package body Slurm.Gres is
          return False;
       end if;
    end "<";
+
+   function "=" (Left, Right : List) return Boolean is
+   begin
+      return Lists."=" (Left, Right);
+   end "=";
 
    function ">" (Left, Right : Resource) return Boolean is
    begin

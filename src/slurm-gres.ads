@@ -19,6 +19,7 @@ package Slurm.Gres is
    function To_String (Item : Resource) return String;
    function "<" (Left, Right : List) return Boolean;
    function ">" (Left, Right : List) return Boolean;
+   function "=" (Left, Right : List) return Boolean;
 
 private
 
