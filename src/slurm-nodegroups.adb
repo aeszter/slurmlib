@@ -113,6 +113,11 @@ package body Slurm.Nodegroups is
       return  Natural (G.Used_Nodes.Length);
    end Get_Used_Nodes;
 
+   function Has_IB (G : Nodegroup) return Boolean is
+   begin
+      return Has_IB (G.Properties);
+   end Has_IB;
+
    overriding procedure Include
      (Container : in out Countable_Map;
       Key       : Node_Name;

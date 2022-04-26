@@ -18,6 +18,7 @@ package Slurm.Tres is
    function New_Resource (Source : String) return Resource;
    function "<" (Left, Right : List) return Boolean;
    function ">" (Left, Right : List) return Boolean;
+   function "=" (Left, Right : List) return Boolean;
 
 private
 

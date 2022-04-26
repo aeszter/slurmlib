@@ -5,7 +5,11 @@ package body Slurm.Node_Properties is
       use Slurm.Gres;
       use Slurm.Tres;
    begin
-      if Left. CPUs < Right.CPUs then
+      if Left.GRES < Right.GRES then
+         return True;
+      elsif Left.GRES > Right.GRES then
+         return False;
+      elsif Left. CPUs < Right.CPUs then
          return True;
       elsif Left. CPUs > Right.CPUs then
          return False;
@@ -13,14 +17,8 @@ package body Slurm.Node_Properties is
          return True;
       elsif Left.Memory > Right.Memory then
          return False;
-      elsif Left.GRES < Right.GRES then
-         return True;
-      elsif Left.GRES > Right.GRES then
-         return False;
-      elsif Left.Features < Right.Features then
-         return True;
-      elsif Left.Features > Right.Features then
-         return False;
+      elsif Left.Has_IB /= Right.Has_IB then
+         return Left.Has_IB < Right.Has_IB;
       elsif Left.TRES < Right.TRES then
          return True;
       elsif Left. TRES > Right.TRES then
@@ -28,6 +26,18 @@ package body Slurm.Node_Properties is
       end if;
       return False;
    end "<";
+
+   overriding function "=" (Left, Right : Set_Of_Properties) return Boolean is
+      use Slurm.Gres;
+      use Slurm.Tres;
+   begin
+      return Left.GRES = Right.GRES and then
+        Left.CPUs = Right.CPUs and then
+        Left.CPUs = Right.CPUs and then
+        Left.Memory = Right.Memory and then
+        Left.Has_IB = Right.Has_IB and then
+        Left.TRES = Right.TRES;
+   end "=";
 
    function Get_CPUs (Item : Set_Of_Properties) return Natural is
    begin
@@ -54,6 +64,11 @@ package body Slurm.Node_Properties is
       return From.TRES;
    end Get_TRES;
 
+   function Has_IB (Source : Set_Of_Properties) return Boolean is
+   begin
+      return Source.Has_IB;
+   end Has_IB;
+
    procedure Init_CPUs (Item : in out Set_Of_Properties; Source : Natural) is
    begin
       Item.CPUs := Source;
@@ -61,6 +76,11 @@ package body Slurm.Node_Properties is
 
    procedure Init_Features (Item : in out Set_Of_Properties; Source : String) is
    begin
+      if Source'Length > 1 and then Source (Source'First .. Source'First + 1) = "ib" then
+         Item.Has_IB := True;
+      else
+         Item.Has_IB := False;
+      end if;
       Item.Features := To_Unbounded_String (Source);
    end Init_Features;
 

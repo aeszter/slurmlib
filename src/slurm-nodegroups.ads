@@ -59,6 +59,7 @@ package Slurm.Nodegroups is
    function Get_GRES (G : Nodegroup) return Slurm.Gres.List;
    function Get_TRES (G : Nodegroup) return Slurm.Tres.List;
    function Get_Features (G : Nodegroup) return String;
+   function Has_IB (G : Nodegroup) return Boolean;
 
 private
    type Nodegroup is new Slurm.Loggers.Logger with record
