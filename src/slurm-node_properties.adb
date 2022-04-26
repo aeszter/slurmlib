@@ -64,6 +64,11 @@ package body Slurm.Node_Properties is
       return From.TRES;
    end Get_TRES;
 
+   function Has_IB (Source : Set_Of_Properties) return Boolean is
+   begin
+      return Source.Has_IB;
+   end Has_IB;
+
    procedure Init_CPUs (Item : in out Set_Of_Properties; Source : Natural) is
    begin
       Item.CPUs := Source;
@@ -71,6 +76,11 @@ package body Slurm.Node_Properties is
 
    procedure Init_Features (Item : in out Set_Of_Properties; Source : String) is
    begin
+      if Source'Length > 1 and then Source (Source'First .. Source'First + 1) = "ib" then
+         Item.Has_IB := True;
+      else
+         Item.Has_IB := False;
+      end if;
       Item.Features := To_Unbounded_String (Source);
    end Init_Features;
 

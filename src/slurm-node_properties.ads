@@ -15,6 +15,7 @@ package Slurm.Node_Properties is
 
    function Get_CPUs (Item : Set_Of_Properties) return Natural;
    function Get_Features (From : Set_Of_Properties) return String;
+   function Has_IB (Source : Set_Of_Properties) return Boolean;
    function Get_Memory (From : Set_Of_Properties) return Gigs;
    function Get_GRES (From : Set_Of_Properties) return Slurm.Gres.List;
    function Get_TRES (From : Set_Of_Properties) return Slurm.Tres.List;
@@ -37,6 +38,7 @@ private
       Memory   : Gigs;
       CPUs     : Positive;
       Features : Unbounded_String;
+      Has_IB   : Boolean;
    end record;
 
 end Slurm.Node_Properties;
