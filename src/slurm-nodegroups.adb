@@ -147,6 +147,11 @@ package body Slurm.Nodegroups is
       end if;
    end Include;
 
+   function Is_Meta_Group (G : Nodegroup) return Boolean is
+   begin
+      return G.Meta;
+   end Is_Meta_Group;
+
    procedure Iterate
      (Collection : Summarized_List;
       Process    : not null access procedure (G : Nodegroup))
@@ -252,6 +257,19 @@ package body Slurm.Nodegroups is
          end if;
          Group_List.Update_Element (The_Props,
                                     Update_Slot_And_Node_Count'Access);
+         if Slurm.Node_Properties.Has_IB (Properties) then
+            Init_Features (Properties, "ib00-meta");
+            The_Props := Group_List.Find (Properties);
+            if The_Props = Lists.No_Element then
+               Group_List.Insert (Properties, New_Nodegroup (Properties, True), The_Props, Inserted);
+               if not Inserted then
+                  N.Record_Error ("Couldnt insert meta properties into Nodegroup");
+                  raise Constraint_Error;
+               end if;
+            end if;
+            Group_List.Update_Element (The_Props,
+                                       Update_Slot_And_Node_Count'Access);
+         end if;
          Next (Position);
       end loop nodes;
       return Group_List;
@@ -259,10 +277,11 @@ package body Slurm.Nodegroups is
          when Constraint_Error => return Group_List;
    end Load;
 
-   function New_Nodegroup (Properties : Set_Of_Properties) return Nodegroup is
+   function New_Nodegroup (Properties : Set_Of_Properties; Meta : Boolean := False) return Nodegroup is
       G : Nodegroup;
    begin
       G.Properties := Properties;
+      G.Meta := Meta;
       return G;
    end New_Nodegroup;
 

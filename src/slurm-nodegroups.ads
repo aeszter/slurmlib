@@ -37,7 +37,7 @@ package Slurm.Nodegroups is
    procedure Iterate_Summary (Process : not null access procedure (Item : State));
    function Get_Summary (List : Summarized_List; From : State) return Natural;
 
-   function New_Nodegroup (Properties : Set_Of_Properties) return Nodegroup;
+   function New_Nodegroup (Properties : Set_Of_Properties; Meta : Boolean := False) return Nodegroup;
    function "=" (Left : Nodegroup; Right : Slurm.Nodes.Node) return Boolean;
    function "=" (Left : Slurm.Nodes.Node; Right : Nodegroup) return Boolean;
 
@@ -60,6 +60,7 @@ package Slurm.Nodegroups is
    function Get_TRES (G : Nodegroup) return Slurm.Tres.List;
    function Get_Features (G : Nodegroup) return String;
    function Has_IB (G : Nodegroup) return Boolean;
+   function Is_Meta_Group (G : Nodegroup) return Boolean;
 
 private
    type Nodegroup is new Slurm.Loggers.Logger with record
@@ -68,7 +69,8 @@ private
       Offline_Nodes, Used_Nodes : Countable_Sets.Set;
       Available_CPUs,
       Draining_CPUs,
-      Offline_CPUs, Used_CPUs : Countable_Map;
+      Offline_CPUs, Used_CPUs   : Countable_Map;
+      Meta : Boolean := False;
 
       Properties : Set_Of_Properties;
    end record;
