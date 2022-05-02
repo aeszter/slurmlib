@@ -17,8 +17,10 @@ package body Slurm.Node_Properties is
          return True;
       elsif Left.Memory > Right.Memory then
          return False;
-      elsif Left.Has_IB /= Right.Has_IB then
-         return Left.Has_IB < Right.Has_IB;
+      elsif Left.Features < Right.Features then
+         return True;
+      elsif Left.Features > Right.Features then
+         return False;
       elsif Left.TRES < Right.TRES then
          return True;
       elsif Left. TRES > Right.TRES then
@@ -35,7 +37,7 @@ package body Slurm.Node_Properties is
         Left.CPUs = Right.CPUs and then
         Left.CPUs = Right.CPUs and then
         Left.Memory = Right.Memory and then
-        Left.Has_IB = Right.Has_IB and then
+        Left.Features = Right.Features and then
         Left.TRES = Right.TRES;
    end "=";
 
