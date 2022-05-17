@@ -153,6 +153,8 @@ package body Slurm.Bunches is
            and then Get_State (J) /= JOB_COMPLETE
            and then Get_State (J) /= JOB_OOM
            and then Get_State (J) /= JOB_FAILED
+           and then Get_State (J) /= JOB_CANCELLED
+           and then Get_State (J) /= JOB_TIMEOUT
          then
             Requirements.Gres := To_Unbounded_String (Get_Gres (J));
             if Requirements.Gres = Null_Unbounded_String then
