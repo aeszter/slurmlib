@@ -7,5 +7,7 @@ package Slurm.Admin is
 --      slurm_init_part_desc_msg - Initialize a partition update descriptor. Used this to initialize the data structure used in slurm_update_partition.
 --      slurm_update_partition - Update state information associated with a given partition.
 --      slurm_delete_partition - Destroy a partition.
+   procedure Release_Job (ID : Positive);
+   procedure Kill_Job (ID : Positive);
 
-   end;
+end Slurm.Admin;
