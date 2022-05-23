@@ -207,27 +207,39 @@ package body Slurm.Admin is
    procedure Kill_Job (ID : Positive) is
       use Slurm.Errors;
       Result : int;
+      Reason : Error;
    begin
       Result := slurm_kill_job (job_id => uint32_t (ID),
                                signal => 9,
                                flags  => 0);
       if Result /= 0 then
-         raise Slurm_Error with Get_Error (Get_Last_Error);
+         Reason := Get_Last_Error;
+         if Get_Last_Error = User_ID_Missing then
+            raise Slurm_Error with "Not allowed to kill job" & ID'Img;
+         else
+            raise Slurm_Error with Get_Error (Reason);
+         end if;
       end if;
    end Kill_Job;
 
    procedure Release_Job (ID : Positive) is
       use Slurm.Errors;
 
-      job_msg     : aliased job_desc_msg_t;
-      Result : int;
+      job_msg : aliased job_desc_msg_t;
+      Result  : int;
+      Reason  : Error;
    begin
       slurm_init_job_desc_msg (job_msg'Unchecked_Access);
       job_msg.job_id := uint32_t (ID);
       job_msg.priority := uint32_t'Last;
       Result := slurm_update_job (job_msg'Unchecked_Access);
       if Result /= 0 then
-         raise Slurm_Error with Get_Error (Get_Last_Error);
+         Reason := Get_Last_Error;
+         if Get_Last_Error = User_ID_Missing then
+            raise Slurm_Error with "Not allowed to release job" & ID'Img;
+         else
+            raise Slurm_Error with Get_Error (Reason);
+         end if;
       end if;
    end Release_Job;
 
