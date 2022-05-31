@@ -443,9 +443,6 @@ package body Slurm.Jobs is
    JOB_STAGE_OUT     : constant uint32_t := 16#00800000#; --  Job is hold
    pragma Warnings (on, "constant*is not referenced");
 
-   function getpwnam (c_name : chars_ptr) return passwd_ptr;
-   pragma Import (C, getpwnam, "getpwnam");
-
    function getgrgid (c_gid : gid_t) return group_ptr;
    pragma Import (C, getgrgid, "getgrgid");
 
@@ -881,15 +878,10 @@ package body Slurm.Jobs is
       use Slurm.Errors;
       use job_info_ptrs;
       uid : uid_t;
-      pw_entry : passwd_ptr := getpwnam (New_String (User));
       E : Error;
       Buffer : aliased job_info_msg_ptr;
    begin
-      if pw_entry = null
-      then
-         raise Constraint_Error;
-      end if;
-      uid := pw_entry.all.pw_uid;
+      uid := To_UID (User);
       if slurm_load_job_user (job_info_msg_pptr => Buffer'Unchecked_Access,
                               user_id           => uint32_t (uid),
                               show_flags        => 0) /= 0
