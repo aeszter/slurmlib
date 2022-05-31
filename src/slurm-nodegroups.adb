@@ -190,7 +190,9 @@ package body Slurm.Nodegroups is
          Element.Total_Nodes.Include (Get_Name (N));
          Group_List.Summary (total).Include (Key      => Get_Name (N),
                                              New_Item => Get_CPUs (N));
-         if Is_Not_Responding (N) then
+         if Is_Not_Responding (N) or else
+           Get_State (N) = NODE_STATE_DOWN
+         then
             Element.Offline_CPUs.Include (Key => Get_Name (N),
                                 New_Item => Get_CPUs (N));
             Element.Offline_Nodes.Include (Get_Name (N));
