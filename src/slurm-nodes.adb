@@ -110,7 +110,7 @@ package body Slurm.Nodes is
               3 => NODE_STATE_ALLOCATED,
               4 => NODE_STATE_ERROR,
               5 => NODE_STATE_MIXED,
-                                                  6 => NODE_STATE_FUTURE);
+              6 => NODE_STATE_FUTURE);
 
    procedure Init (N : out Node; Ptr : node_info_ptr);
    function Build_List (Buffer : aliased node_info_msg_ptr) return List;
