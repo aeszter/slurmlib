@@ -188,10 +188,33 @@ package body Slurm.Admin is
       x11_magic_cookie : chars_ptr; --  automatically stolen from submit node
       x11_target : chars_ptr; --  target hostname, or unix socket if port == 0
       x11_target_port : uint16_t; --  target tcp port, 6000 + the display number
-
    end record;
 
    type job_desc_msg_ptr is access constant job_desc_msg_t;
+
+   type update_node_msg_t is record
+   -- NOTE: If setting node_addr and/or node_hostname then comma separate names
+   -- and include an equal number of node_names
+      cpu_bind     : uint32_t;  -- default CPU binding type
+      features     : chars_ptr;   -- new available feature for node
+      features_act : chars_ptr; -- new active feature for node
+      gres         : chars_ptr;   -- new generic resources for node
+      node_addr    : chars_ptr;  -- communication name (optional)
+      node_hostname : chars_ptr;  -- node's hostname (optional)
+      node_names   : chars_ptr; -- nodelist expression
+      node_state   : uint32_t;  -- see enum node_states
+      reason       : chars_ptr;   -- reason for node being DOWN or DRAINING
+      reason_uid   : uint32_t;  -- user ID of sending (needed if user
+         -- root is sending message)
+      weight       : uint32_t;  -- new weight for node
+   end record;
+
+   NODE_STATE_DOWN : constant uint32_t := 16#00000001#;
+   NODE_STATE_UNDRAIN : constant uint32_t := 16#00000040#;
+   NODE_STATE_RESUME : constant uint32_t := 16#00000100#;
+   NODE_STATE_DRAIN : constant uint32_t := 16#00000200#;
+
+   type update_node_msg_ptr is access constant update_node_msg_t;
 
    function slurm_kill_job (job_id : uint32_t;
                             signal : uint16_t;
@@ -203,6 +226,58 @@ package body Slurm.Admin is
 
    procedure slurm_init_job_desc_msg (job_msg : job_desc_msg_ptr);
    pragma Import (C, slurm_init_job_desc_msg, "slurm_init_job_desc_msg");
+
+   function slurm_update_node (node_msg : update_node_msg_ptr) return int;
+   pragma Import (C, slurm_update_node, "slurm_update_node");
+
+   procedure slurm_init_update_node_msg (node_msg : update_node_msg_ptr);
+   pragma Import (c, slurm_init_update_node_msg, "slurm_init_update_node_msg");
+
+   procedure Down_Node (Name, Reason : String; uid : uid_t) is
+      use Slurm.Errors;
+
+      node_msg : aliased update_node_msg_t;
+      Result   : int;
+      API_Err  : Error;
+   begin
+      slurm_init_update_node_msg (node_msg'Unchecked_Access);
+      node_msg.node_names := New_String (Name);
+      node_msg.reason := New_String (Reason);
+      node_msg.node_state := NODE_STATE_DOWN;
+      node_msg.reason_uid := uint32_t (uid);
+      Result := slurm_update_node (node_msg'Unchecked_Access);
+      if Result /= 0 then
+         API_Err := Get_Last_Error;
+         if Get_Last_Error = User_ID_Missing then
+            raise Slurm_Error with "Not allowed to down node" & Name;
+         else
+            raise Slurm_Error with Get_Error (API_Err);
+         end if;
+      end if;
+   end Down_Node;
+
+   procedure Drain_Node (Name, Reason : String; UID : uid_t) is
+      use Slurm.Errors;
+
+      node_msg : aliased update_node_msg_t;
+      Result   : int;
+      API_Err  : Error;
+   begin
+      slurm_init_update_node_msg (node_msg'Unchecked_Access);
+      node_msg.node_names := New_String (Name);
+      node_msg.reason := New_String (Reason);
+      node_msg.reason_uid := uint32_t (UID);
+      node_msg.node_state := NODE_STATE_DRAIN;
+      Result := slurm_update_node (node_msg'Unchecked_Access);
+      if Result /= 0 then
+         API_Err := Get_Last_Error;
+         if Get_Last_Error = User_ID_Missing then
+            raise Slurm_Error with "Not allowed to drain node" & Name;
+         else
+            raise Slurm_Error with Get_Error (API_Err);
+         end if;
+      end if;
+   end Drain_Node;
 
    procedure Kill_Job (ID : Positive) is
       use Slurm.Errors;
@@ -242,5 +317,47 @@ package body Slurm.Admin is
          end if;
       end if;
    end Release_Job;
+
+   procedure Resume_Node (Name : String) is
+      use Slurm.Errors;
+
+      node_msg : aliased update_node_msg_t;
+      Result  : int;
+      Reason  : Error;
+   begin
+      slurm_init_update_node_msg (node_msg'Unchecked_Access);
+      node_msg.node_names := New_String (Name);
+      node_msg.node_state := NODE_STATE_RESUME;
+      Result := slurm_update_node (node_msg'Unchecked_Access);
+      if Result /= 0 then
+         Reason := Get_Last_Error;
+         if Get_Last_Error = User_ID_Missing then
+            raise Slurm_Error with "Not allowed to resume node" & Name;
+         else
+            raise Slurm_Error with Get_Error (Reason);
+         end if;
+      end if;
+   end Resume_Node;
+
+   procedure Undrain_Node (Name : String) is
+      use Slurm.Errors;
+
+      node_msg : aliased update_node_msg_t;
+      Result  : int;
+      Reason  : Error;
+   begin
+      slurm_init_update_node_msg (node_msg'Unchecked_Access);
+      node_msg.node_names := New_String (Name);
+      node_msg.node_state := NODE_STATE_UNDRAIN;
+      Result := slurm_update_node (node_msg'Unchecked_Access);
+      if Result /= 0 then
+         Reason := Get_Last_Error;
+         if Get_Last_Error = User_ID_Missing then
+            raise Slurm_Error with "Not allowed to undrain node" & Name;
+         else
+            raise Slurm_Error with Get_Error (Reason);
+         end if;
+      end if;
+   end Undrain_Node;
 
 end Slurm.Admin;
