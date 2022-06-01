@@ -4,6 +4,9 @@ with Ada.Calendar.Conversions;
 with POSIX.C;
 package body Slurm.Utils is
 
+   function getpwnam (c_name : chars_ptr) return POSIX.C.passwd_ptr;
+   pragma Import (C, getpwnam, "getpwnam");
+
    function getpwuid (c_uid : POSIX.C.uid_t) return POSIX.C.passwd_ptr;
    pragma Import (C, getpwuid, "getpwuid");
 
@@ -81,6 +84,18 @@ package body Slurm.Utils is
       end loop;
       return Result;
    end To_String_Set;
+
+   function To_UID (Name : String) return POSIX.C.uid_t is
+      use POSIX.C;
+
+      pw_entry : passwd_ptr := getpwnam (New_String (Name));
+   begin
+      if pw_entry = null
+      then
+         raise Constraint_Error;
+      end if;
+      return pw_entry.all.pw_uid;
+   end To_UID;
 
    function To_User_Name (User : String) return User_Name is
       use Ada.Strings.Fixed;

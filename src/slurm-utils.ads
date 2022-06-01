@@ -27,6 +27,7 @@ package Slurm.Utils is
    function To_String (Memory : Gigs) return String;
    function MiB_To_Gigs (Source : Slurm.C_Types.uint64_t) return Gigs;
    function MiB_To_Gigs (Source : Slurm.C_Types.uint32_t) return Gigs;
+   function To_UID (Name : String) return POSIX.C.uid_t;
 
 --     function To_Tri_State (Truth : String) return Tri_State;
 --     function To_Tri_State (Truth : Boolean) return Tri_State;
