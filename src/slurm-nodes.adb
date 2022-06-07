@@ -121,7 +121,9 @@ package body Slurm.Nodes is
 
       procedure Attach_Job_To_Node (J : Job) is
       begin
-         if Has_Node (J, Get_Name (To)) then
+         if Is_Running (J) and then
+           Has_Node (J, Get_Name (To))
+         then
             To.Jobs.Include (Get_ID (J));
          end if;
       end Attach_Job_To_Node;
