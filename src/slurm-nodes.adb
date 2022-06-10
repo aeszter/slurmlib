@@ -110,7 +110,7 @@ package body Slurm.Nodes is
               3 => NODE_STATE_ALLOCATED,
               4 => NODE_STATE_ERROR,
               5 => NODE_STATE_MIXED,
-                                                  6 => NODE_STATE_FUTURE);
+              6 => NODE_STATE_FUTURE);
 
    procedure Init (N : out Node; Ptr : node_info_ptr);
    function Build_List (Buffer : aliased node_info_msg_ptr) return List;
@@ -121,7 +121,9 @@ package body Slurm.Nodes is
 
       procedure Attach_Job_To_Node (J : Job) is
       begin
-         if Has_Node (J, Get_Name (To)) then
+         if Is_Running (J) and then
+           Has_Node (J, Get_Name (To))
+         then
             To.Jobs.Include (Get_ID (J));
          end if;
       end Attach_Job_To_Node;
