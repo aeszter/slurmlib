@@ -26,7 +26,7 @@ package body Slurm.Jobs is
       batch_features         : chars_ptr; -- features required for batch script's node
       batch_flag             : uint16_t; -- 1 if batch: queued job with script
       batch_host             : chars_ptr;    -- name of host running batch script
-      bitflags               : uint32_t;                     -- Various job flags
+      bitflags               : uint64_t;                     -- Various job flags
       boards_per_node        : uint16_t; -- boards per node required by job
       burst_buffer           : chars_ptr; -- burst buffer specifications
       burst_buffer_state     : chars_ptr; -- burst buffer state info
@@ -36,6 +36,7 @@ package body Slurm.Jobs is
       command                : chars_ptr; -- command to be executed, built from submitted
                                           --  job's argv and NULL for salloc command
       comment                : chars_ptr; -- arbitrary comment
+      container              : chars_ptr;
       contiguous             : uint16_t; -- 1 if job requires contiguous nodes
       core_spec              : uint16_t; -- specialized core count
       cores_per_socket       : uint16_t; -- cores per socket required by job
@@ -46,6 +47,7 @@ package body Slurm.Jobs is
       cpu_freq_max           : uint32_t;                     -- Maximum cpu frequency
       cpu_freq_gov           : uint32_t;                     -- cpu frequency governor
       cpus_per_tres          : chars_ptr; -- semicolon delimited list of TRES values
+      cronspec               : chars_ptr;
       deadline               : time_t;   -- deadline
       delay_boot             : uint32_t; -- delay boot for desired node state
       dependency             : chars_ptr;      -- synchronize job execution with other jobs
@@ -89,7 +91,8 @@ package body Slurm.Jobs is
       node_inx               : access uint32_t; -- list index pairs into node_table for *nodes:
       --  start_range_1, end_range_1,
       --  start_range_2, .., -1
-      ntasks_per_core        : uint16_t; -- number of tasks to invoke on each core
+      ntasks_per_core            : uint16_t; -- number of tasks to invoke on each core
+      ntasks_per_tres        : uint16_t;
       ntasks_per_node        : uint16_t; -- number of tasks to invoke on each node
       ntasks_per_socket      : uint16_t; -- number of tasks to invoke on each socket
       ntasks_per_board       : uint16_t; -- number of tasks to invoke on each board
@@ -123,7 +126,7 @@ package body Slurm.Jobs is
       select_jobinfo         : access dynamic_plugin_data_t; -- opaque data type,
       --  process using
       --  slurm_get_select_jobinfo()
-
+      selinux_context        : chars_ptr;
       shared                 : uint16_t;        -- 1 if job can share nodes with other jobs
       show_flags             : uint16_t;        -- conveys level of details requested
       site_factor            : uint32_t;
@@ -177,6 +180,7 @@ package body Slurm.Jobs is
    subtype job_info_ptr is job_info_ptrs.Pointer;
 
    type job_info_msg_t is record
+      last_backfill : time_t;
       last_update  : time_t;     -- time of latest info
       record_count : uint32_t;   -- number of records
       job_array    : job_info_ptr; -- the job records

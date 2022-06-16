@@ -28,14 +28,15 @@ package body Slurm.Admin is
       --  NOTE: Set by slurmctld
       batch_features : chars_ptr; --  features required for batch script's node
       begin_time        : time_t;  --  delay initiation until this time
-      bitflags        : uint32_t;      --  bitflags
+      bitflags        : uint64_t;      --  bitflags
       burst_buffer    : chars_ptr; --  burst buffer specifications
       clusters        : chars_ptr;   --  cluster names used for multi-cluster jobs
       cluster_features : chars_ptr; -- required cluster feature specification,
          -- default NONE */
       comment          : chars_ptr;    --  arbitrary comment
       contiguous       : uint16_t;  -- 1 if job requires contiguous nodes,
-         -- 0 otherwise,default=0 */
+                                    -- 0 otherwise,default=0 */
+      container        : chars_ptr;
       core_spec        : uint16_t; -- specialized core/thread count,
          -- see CORE_SPEC_THREAD */
       cpu_bind         : chars_ptr;   -- binding map for map/mask_cpu - This
@@ -49,7 +50,8 @@ package body Slurm.Admin is
       cpu_freq_min     : uint32_t;  --  Minimum cpu frequency
       cpu_freq_max     : uint32_t;  --  Maximum cpu frequency
       cpu_freq_gov     : uint32_t;  --  cpu frequency governor
-      cpus_per_tres    : chars_ptr;  --  semicolon delimited list of TRES=# values
+      cpus_per_tres     : chars_ptr;  --  semicolon delimited list of TRES=# values
+      crontab_entry    : chars_ptr; -- actually void*
       deadline         : time_t;  --  deadline
       delay_boot       : uint32_t;  --  delay boot for desired node state
       dependency       : chars_ptr; --  synchronize job execution with other jobs
@@ -123,7 +125,8 @@ package body Slurm.Admin is
       site_factor : uint32_t; --  factor to consider in priority
       spank_job_env             : char_ptr_ptr; -- environment variables for job prolog/epilog
          -- scripts as set by SPANK plugins */
-      spank_job_env_size : uint32_t; --  element count in spank_env
+      spank_job_env_size        : uint32_t; --  element count in spank_env
+      submit_line : chars_ptr;
       task_dist : uint32_t; --  see enum task_dist_state
       time_limit : uint32_t;  -- maximum run time in minutes, default is
          -- partition limit */
@@ -166,17 +169,19 @@ package body Slurm.Admin is
       ntasks_per_socket : uint16_t; -- number of tasks to invoke on
             -- each socket */
       ntasks_per_core : uint16_t; --  number of tasks to invoke on each core
-      ntasks_per_board : uint16_t; --  number of tasks to invoke on each board
+      ntasks_per_board          : uint16_t; --  number of tasks to invoke on each board
+      ntasks_per_tres : uint16_t;
       pn_min_cpus : uint16_t;    --  minimum # CPUs per node, default=0
       pn_min_memory : uint64_t;  -- minimum real memory per node OR
           -- real memory per CPU | MEM_PER_CPU,
           -- default=0 (no limit) */
       pn_min_tmp_disk : uint32_t;   -- minimum tmp disk per node,
                                     -- default=0 */
-
+      req_context : chars_ptr;
       req_switch : uint32_t;    --  Minimum number of switches
       select_jobinfo              : access dynamic_plugin_data_t; -- opaque data type,
                                                                   -- Slurm internal use only */
+      selinux_context : chars_ptr;
       std_err : chars_ptr;    --  pathname of stderr
       std_in : chars_ptr;   --  pathname of stdin
       std_out : chars_ptr;    --  pathname of stdout
@@ -195,7 +200,9 @@ package body Slurm.Admin is
    type update_node_msg_t is record
    -- NOTE: If setting node_addr and/or node_hostname then comma separate names
    -- and include an equal number of node_names
+      comment      : chars_ptr;
       cpu_bind     : uint32_t;  -- default CPU binding type
+      extra        : chars_ptr;
       features     : chars_ptr;   -- new available feature for node
       features_act : chars_ptr; -- new active feature for node
       gres         : chars_ptr;   -- new generic resources for node

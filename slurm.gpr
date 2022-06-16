@@ -1,0 +1,7 @@
+Project slurm is
+  For externally_built use "true";
+  For library_dir use "lib/lib64";
+  For library_name use "slurm";
+  For source_dirs use (); -- no sources.
+  for library_kind use "dynamic";
+End slurm;

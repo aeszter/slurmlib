@@ -32,6 +32,7 @@ package body Slurm.Nodes is
       cpu_spec_list     : chars_ptr;     -- node's specialized cpus
       energy            : access acct_gather_energy_t;     -- energy data
       ext_sensors       : access ext_sensors_data_t; -- external sensor data
+      extra             : chars_ptr;
       power             : access power_mgmt_data_t;        -- power management data
       features          : chars_ptr;     -- list of a node's available features
       features_act      : chars_ptr;     -- list of a node's current acitve features,
@@ -39,6 +40,7 @@ package body Slurm.Nodes is
       gres              : chars_ptr;     -- list of a node's generic resources
       gres_drain        : chars_ptr; -- list of drained GRES
       gres_used         : chars_ptr;  -- list of GRES in current use
+      last_busy         : time_t;
       mcs_label         : chars_ptr;   -- mcs label if mcs plugin in use
       mem_spec_limit    : uint64_t; -- MB memory limit for specialization
       name              : chars_ptr;         -- node name to slurm
@@ -53,6 +55,7 @@ package body Slurm.Nodes is
                                       -- populated by scontrol */
       port              : uint16_t;    -- TCP port number of the slurmd */
       real_memory       : uint64_t;  -- configured MB of real memory on the node
+      comment           : chars_ptr;
       reason            : chars_ptr;               -- reason for node being DOWN or DRAINING
       reason_time       : time_t;      -- Time stamp when reason was set, ignore if
                                        -- no reason is set.
@@ -577,8 +580,9 @@ package body Slurm.Nodes is
       E : Error;
       Buffer : aliased node_info_msg_ptr;
    begin
-      if Slurm.General.API_Version /= 16#230000# then
-         raise Program_Error with "unsupported Slurm API version";
+      if Slurm.General.API_Version /= 16#250000# then
+         raise Program_Error with "unsupported Slurm API version"
+           & Slurm.General.API_Version'Img;
       end if;
       if slurm_load_node (update_time       => 0,
                           node_info_msg_pptr => Buffer'Unchecked_Access,
