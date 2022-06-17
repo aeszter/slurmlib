@@ -369,6 +369,8 @@ package Slurm.Jobs is
    procedure Get_Summary (Jobs, Tasks : out State_Count);
    function Get_Job (ID : Natural) return Job;
 
+   function Get_Backfill return Ada.Calendar.Time;
+
 private
    function Precedes_By_ID (Left, Right : Job) return Boolean;
    function Precedes_By_Submission (Left, Right : Job) return Boolean;

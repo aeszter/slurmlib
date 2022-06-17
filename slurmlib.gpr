@@ -1,4 +1,5 @@
 with "florist";
+with "slurm";
 
 project Slurmlib is
   type Style_Type is ("debug", "release");
@@ -43,7 +44,7 @@ project Slurmlib is
 
    end Compiler;
 
-   package Linker is
-      for Default_Switches ("Ada") use ("-lslurm");
-   end Linker;
+--   package Linker is
+--      for Default_Switches ("Ada") use ("-Llib/lib64 -lslurm");
+--   end Linker;
 end Slurmlib;
