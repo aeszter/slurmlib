@@ -278,6 +278,11 @@ package body Slurm.Nodes is
       return N.Boot_Time;
    end Get_Boot_Time;
 
+   function Get_Comment (N : Node) return String is
+   begin
+      return To_String (N.Comment);
+   end Get_Comment;
+
    function Get_Cores_Per_Socket (N : Node) return Positive is
    begin
       return N.Cores_Per_Socket;
@@ -302,6 +307,11 @@ package body Slurm.Nodes is
    begin
       return To_String (N.Free_Memory);
    end Get_Free_Memory;
+
+   function Get_Last_Busy (N : Node) return Ada.Calendar.Time is
+   begin
+      return N.Last_Busy;
+   end Get_Last_Busy;
 
    function Get_Load (N : Node) return Usage_Number is
    begin
@@ -427,6 +437,7 @@ package body Slurm.Nodes is
       N.Architecture := Convert_String (Ptr.all.arch);
       N.Boards := Natural (Ptr.all.boards);
       N.Boot_Time := Convert_Time (Ptr.all.boot_time);
+      N.Comment := Convert_String (Ptr.all.comment);
       N.Cores_Per_Socket := Natural (Ptr.all.cores);
       N.Load := Usage_Number (Ptr.all.cpu_load) / 100;
       begin
@@ -438,6 +449,7 @@ package body Slurm.Nodes is
       Init_CPUs (N.Properties, Natural (Ptr.all.cpus));
       N.GRES_Drain := Gres.Init (To_String (Ptr.all.gres_drain));
       N.GRES_Used := Gres.Init (To_String (Ptr.all.gres_used));
+      N.Last_Busy := Convert_Time (Ptr.all.last_busy);
       N.Name := Node_Name (Convert_String (Ptr.all.name));
       N.State := Ptr.all.node_state;
       N.OS := Convert_String (Ptr.all.os);

@@ -456,6 +456,7 @@ package body Slurm.Jobs is
 
    The_Map : Lists.Map;
    The_List : Sortable_Lists.List;
+   Last_Backfill : Ada.Calendar.Time := Convert_Time (0);
 
    Loaded : Boolean := False;
    -- Have Jobs been loaded? Then The_Map and The_List can be used
@@ -470,6 +471,7 @@ package body Slurm.Jobs is
    begin
       The_Map.Clear;
       The_List.Clear;
+      Last_Backfill := Convert_Time (Buffer.last_backfill);
       Job_Ptr := Buffer.job_array;
       for I in 1 .. Buffer.record_count loop
          Init (J, Job_Ptr);
@@ -517,6 +519,11 @@ package body Slurm.Jobs is
    begin
       return To_String (J.Alloc_Node);
    end Get_Alloc_Node;
+
+   function Get_Backfill return Ada.Calendar.Time is
+   begin
+      return Last_Backfill;
+   end Get_Backfill;
 
    function Get_Batch_Host (J : Job) return Node_Name is
    begin

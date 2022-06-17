@@ -51,6 +51,7 @@ package Slurm.Nodes is
    function Get_Architecture (N : Node) return String;
    function Get_Boards (N : Node) return Positive;
    function Get_Boot_Time (N : Node) return Ada.Calendar.Time;
+   function Get_Last_Busy (N : Node) return Ada.Calendar.Time;
    function Get_Cores_Per_Socket (N : Node) return Positive;
 
    function Get_CPUs (N : Node) return Positive;
@@ -70,6 +71,7 @@ package Slurm.Nodes is
    function Get_Reason (N : Node) return String;
    function Get_Reason_User (N : Node) return User_Name;
    function Get_Reason_Time (N : Node) return Ada.Calendar.Time;
+   function Get_Comment (N : Node) return String;
    function Get_Start_Time (N : Node) return Ada.Calendar.Time;
    function Get_Threads_Per_Core (N : Node) return Positive;
    function Get_Tmp_Total (N : Node) return Gigs;
@@ -111,7 +113,8 @@ private
    type Node is new Loggers.Logger with record
       Architecture     : Unbounded_String;
       Boards           : Natural;
-      Boot_Time        : Ada.Calendar.Time;
+      Boot_Time,
+      Last_Busy        : Ada.Calendar.Time;
       Cores_Per_Socket : Natural;
       Sockets          : Natural;
       Threads_Per_Core : Natural;
@@ -126,7 +129,7 @@ private
       OS               : Unbounded_String;
       Owner            : User_Name;
       Partitions       : Unbounded_String;
-      Reason           : Unbounded_String;
+      Reason, Comment  : Unbounded_String;
       Reason_Time      : Ada.Calendar.Time;
       Reason_User      : User_Name;
       Tmp_Total        : Gigs;
