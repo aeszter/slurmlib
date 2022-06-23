@@ -843,6 +843,9 @@ package body Slurm.Jobs is
       J.TRES_Request := Convert_String (Ptr.all.tres_req_str);
       J.TRES_Per_Node := Convert_String (Ptr.all.tres_per_node);
       J.TRES_Allocated := Convert_String (Ptr.all.tres_alloc_str);
+   exception
+      when E : others =>
+         raise Program_Error with Exception_Message (E) & "Job" & J.ID'Img;
    end Init;
 
    function Is_Pending (J : Job) return Boolean is
