@@ -331,6 +331,7 @@ package Slurm.Jobs is
    function Get_Partition (J : Job) return String;
    function Get_Priority (J : Job) return Natural;
    function Get_Project (J : Job) return String;
+   function Get_QOS (J : Job) return String;
 
    function Get_Reservation (J : Job) return String;
    function Has_Start_Time (J : Job) return Boolean;
@@ -391,6 +392,7 @@ private
       Group       : User_Name;
       Priority    : Natural;
       Project     : Unbounded_String;
+      QOS         : Unbounded_String;
       Has_Start_Time : Boolean;
       Start_Time : Ada.Calendar.Time;
       Has_End_Time : Boolean;

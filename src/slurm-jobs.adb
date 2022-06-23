@@ -5,6 +5,7 @@ with POSIX;
 with POSIX.C; use POSIX.C;
 with Slurm.C_Types; use Slurm.C_Types;
 with Slurm.Errors;
+with Ada.Exceptions; use Ada.Exceptions;
 
 package body Slurm.Jobs is
    type job_resources_t is null record;
@@ -616,6 +617,11 @@ package body Slurm.Jobs is
       return To_String (J.Project);
    end Get_Project;
 
+   function Get_QOS (J : Job) return String is
+   begin
+      return To_String (J.QOS);
+   end Get_QOS;
+
    function Get_Reservation (J : Job) return String is
    begin
       return To_String (J.Reservation);
@@ -783,6 +789,7 @@ package body Slurm.Jobs is
       end;
       J.Priority := Natural (Ptr.all.priority);
       J.Project := Convert_String (Ptr.all.wckey);
+      J.QOS := Convert_String (Ptr.all.qos);
       if Ptr.all.shared = 0 then
          J.Shared := False;
       else
