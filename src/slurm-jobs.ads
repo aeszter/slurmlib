@@ -311,6 +311,7 @@ package Slurm.Jobs is
 
    procedure Iterate (Process : not null access procedure (J : Job));
    procedure Sort (By, Direction : String);
+   function Get_Account (J : Job) return String;
    function Get_Alloc_Node (J : Job) return String;
    function Get_Command (J : Job) return String;
    function Has_Admin_Comment (J : Job) return Boolean;
@@ -383,6 +384,7 @@ private
 
    type Job is new Slurm.Loggers.Logger with record
       Comment, Admin_Comment : Unbounded_String;
+      Account     : Unbounded_String;
       Alloc_Node             : Unbounded_String;
       Batch_Host  : Node_Name;
       Gres        : Unbounded_String;

@@ -511,6 +511,11 @@ package body Slurm.Jobs is
       return Cursor (The_List.First);
    end First;
 
+   function Get_Account (J : Job) return String is
+   begin
+      return To_String (J.Account);
+   end Get_Account;
+
    function Get_Admin_Comment (J : Job) return String is
    begin
       return To_String (J.Admin_Comment);
@@ -771,6 +776,7 @@ package body Slurm.Jobs is
 
    procedure Init (J : out Job; Ptr : job_info_ptr) is
    begin
+      J.Account := Convert_String (Ptr.all.account);
       J.Alloc_Node := Convert_String (Ptr.all.alloc_node);
       J.Gres := Convert_String (Ptr.all.gres_total);
       J.ID := Integer (Ptr.all.job_id);
