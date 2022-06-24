@@ -815,7 +815,13 @@ package body Slurm.Jobs is
       end if;
       J.State := Enum_To_State (Ptr.all.job_state and JOB_STATE_BASE);
       J.Submission_Time := Convert_Time (Ptr.all.submit_time);
-      J.Tasks := Integer (Ptr.all.num_tasks);
+      declare
+      begin
+         J.Tasks := Integer (Ptr.all.num_tasks);
+      exception
+         when Constraint_Error =>
+            null; -- cancelled jobs report an illegal value here (-2)
+      end;
       J.Tasks_Per_Core := Natural (Ptr.all.ntasks_per_core);
       J.Tasks_Per_Node := Natural (Ptr.all.ntasks_per_node);
       J.Tasks_Per_Socket := Natural (Ptr.all.ntasks_per_socket);
@@ -851,7 +857,7 @@ package body Slurm.Jobs is
       J.TRES_Allocated := Convert_String (Ptr.all.tres_alloc_str);
    exception
       when E : others =>
-         raise Program_Error with Exception_Message (E) & "Job" & J.ID'Img;
+         Record_Error (Object => J, Message => Exception_Message (E));
    end Init;
 
    function Is_Pending (J : Job) return Boolean is
