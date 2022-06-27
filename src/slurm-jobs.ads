@@ -311,6 +311,7 @@ package Slurm.Jobs is
 
    procedure Iterate (Process : not null access procedure (J : Job));
    procedure Sort (By, Direction : String);
+   function Get_Account (J : Job) return String;
    function Get_Alloc_Node (J : Job) return String;
    function Get_Command (J : Job) return String;
    function Has_Admin_Comment (J : Job) return Boolean;
@@ -331,6 +332,7 @@ package Slurm.Jobs is
    function Get_Partition (J : Job) return String;
    function Get_Priority (J : Job) return Natural;
    function Get_Project (J : Job) return String;
+   function Get_QOS (J : Job) return String;
 
    function Get_Reservation (J : Job) return String;
    function Has_Start_Time (J : Job) return Boolean;
@@ -382,6 +384,7 @@ private
 
    type Job is new Slurm.Loggers.Logger with record
       Comment, Admin_Comment : Unbounded_String;
+      Account     : Unbounded_String;
       Alloc_Node             : Unbounded_String;
       Batch_Host  : Node_Name;
       Gres        : Unbounded_String;
@@ -391,6 +394,7 @@ private
       Group       : User_Name;
       Priority    : Natural;
       Project     : Unbounded_String;
+      QOS         : Unbounded_String;
       Has_Start_Time : Boolean;
       Start_Time : Ada.Calendar.Time;
       Has_End_Time : Boolean;

@@ -5,6 +5,7 @@ with POSIX;
 with POSIX.C; use POSIX.C;
 with Slurm.C_Types; use Slurm.C_Types;
 with Slurm.Errors;
+with Ada.Exceptions; use Ada.Exceptions;
 
 package body Slurm.Jobs is
    type job_resources_t is null record;
@@ -510,6 +511,11 @@ package body Slurm.Jobs is
       return Cursor (The_List.First);
    end First;
 
+   function Get_Account (J : Job) return String is
+   begin
+      return To_String (J.Account);
+   end Get_Account;
+
    function Get_Admin_Comment (J : Job) return String is
    begin
       return To_String (J.Admin_Comment);
@@ -615,6 +621,11 @@ package body Slurm.Jobs is
    begin
       return To_String (J.Project);
    end Get_Project;
+
+   function Get_QOS (J : Job) return String is
+   begin
+      return To_String (J.QOS);
+   end Get_QOS;
 
    function Get_Reservation (J : Job) return String is
    begin
@@ -765,6 +776,7 @@ package body Slurm.Jobs is
 
    procedure Init (J : out Job; Ptr : job_info_ptr) is
    begin
+      J.Account := Convert_String (Ptr.all.account);
       J.Alloc_Node := Convert_String (Ptr.all.alloc_node);
       J.Gres := Convert_String (Ptr.all.gres_total);
       J.ID := Integer (Ptr.all.job_id);
@@ -783,6 +795,7 @@ package body Slurm.Jobs is
       end;
       J.Priority := Natural (Ptr.all.priority);
       J.Project := Convert_String (Ptr.all.wckey);
+      J.QOS := Convert_String (Ptr.all.qos);
       if Ptr.all.shared = 0 then
          J.Shared := False;
       else
@@ -802,7 +815,13 @@ package body Slurm.Jobs is
       end if;
       J.State := Enum_To_State (Ptr.all.job_state and JOB_STATE_BASE);
       J.Submission_Time := Convert_Time (Ptr.all.submit_time);
-      J.Tasks := Integer (Ptr.all.num_tasks);
+      declare
+      begin
+         J.Tasks := Integer (Ptr.all.num_tasks);
+      exception
+         when Constraint_Error =>
+            null; -- cancelled jobs report an illegal value here (-2)
+      end;
       J.Tasks_Per_Core := Natural (Ptr.all.ntasks_per_core);
       J.Tasks_Per_Node := Natural (Ptr.all.ntasks_per_node);
       J.Tasks_Per_Socket := Natural (Ptr.all.ntasks_per_socket);
@@ -836,6 +855,9 @@ package body Slurm.Jobs is
       J.TRES_Request := Convert_String (Ptr.all.tres_req_str);
       J.TRES_Per_Node := Convert_String (Ptr.all.tres_per_node);
       J.TRES_Allocated := Convert_String (Ptr.all.tres_alloc_str);
+   exception
+      when E : others =>
+         Record_Error (Object => J, Message => Exception_Message (E));
    end Init;
 
    function Is_Pending (J : Job) return Boolean is
