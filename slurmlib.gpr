@@ -44,6 +44,10 @@ project Slurmlib is
 
    end Compiler;
 
+   package Documentation is
+      for Documentation_Dir use "/srv/www/gnatdoc/slurmlib";
+   end Documentation;
+
 --   package Linker is
 --      for Default_Switches ("Ada") use ("-Llib/lib64 -lslurm");
 --   end Linker;
