@@ -340,6 +340,7 @@ package Slurm.Jobs is
    function Get_End_Time (J : Job) return Ada.Calendar.Time;
 
    function Walltime (J : Job) return Duration;
+   function Get_Sched_Eval_Time (J : Job) return Ada.Calendar.Time;
    function Get_State (J : Job) return String;
    function Get_State (J : Job) return states;
    function Get_State_Description (J : Job) return String;
@@ -399,6 +400,7 @@ private
       Start_Time : Ada.Calendar.Time;
       Has_End_Time : Boolean;
       End_Time       : Ada.Calendar.Time;
+      Last_Sched_Eval : Ada.Calendar.Time;
       Shared         : Boolean;
       State          : states;
       State_Desc     : Unbounded_String;

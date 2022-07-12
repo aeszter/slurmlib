@@ -632,6 +632,11 @@ package body Slurm.Jobs is
       return To_String (J.Reservation);
    end Get_Reservation;
 
+   function Get_Sched_Eval_Time (J : Job) return Ada.Calendar.Time is
+   begin
+      return J.Last_Sched_Eval;
+   end Get_Sched_Eval_Time;
+
    function Get_Start_Time (J : Job) return Ada.Calendar.Time is
    begin
       return J.Start_Time;
@@ -808,6 +813,8 @@ package body Slurm.Jobs is
          J.Has_Start_Time := True;
       end if;
       J.End_Time := Ada.Calendar.Conversions.To_Ada_Time (Interfaces.C.long (Ptr.all.end_time));
+      J.Last_Sched_Eval := Ada.Calendar.Conversions.To_Ada_Time
+        (Interfaces.C.long (Ptr.all.last_sched_eval));
       if Ptr.all.end_time = 0 then
          J.Has_End_Time := False;
       else
