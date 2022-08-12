@@ -561,6 +561,57 @@ package body Slurm.Jobs is
       return J.End_Time;
    end Get_End_Time;
 
+   function Get_Extended_State (J : Job) return Extended_State is
+   begin
+      case J.State is
+         when JOB_PENDING =>
+            case J.State_Reason is
+               when WAIT_PRIORITY =>
+                  return Ext_PRIORITY;
+               when WAIT_DEPENDENCY =>
+                  return Ext_DEPENDENCY;
+               when WAIT_ARRAY_TASK_LIMIT =>
+                  return Ext_ARRAY_TASK_LIMIT;
+               when WAIT_RESOURCES =>
+                  return Ext_RESOURCES;
+               when WAIT_TIME =>
+                  return Ext_TIME;
+               when WAIT_HELD_USER =>
+                  return Ext_HELD_USER;
+               when WAIT_NO_REASON =>
+                  return Ext_PENDING;
+               when others =>
+                  return Ext_Others;
+            end case;
+         when JOB_RUNNING =>
+            return Ext_RUNNING;
+         when JOB_SUSPENDED =>
+            return Ext_SUSPENDED;
+         when JOB_PREEMPTED =>
+            return Ext_PREEMPTED;
+         when JOB_DEADLINE =>
+            return Ext_DEADLINE;
+         when others =>
+            return Ext_Transit;
+      end case;
+   end Get_Extended_State;
+
+   procedure Get_Extended_Summary (Jobs, Tasks : out Extended_State_Count) is
+      procedure Increment (Position : Lists.Cursor);
+
+      procedure Increment (Position : Lists.Cursor) is
+         J : Job := Lists.Element (Position);
+      begin
+         Jobs (J.Get_Extended_State) :=  Jobs (J.Get_Extended_State) + 1;
+         Tasks (J.Get_Extended_State) := Tasks (J.Get_Extended_State) + J.Tasks;
+      end Increment;
+
+   begin
+      Jobs := (others => 0);
+      Tasks := (others => 0);
+      The_Map.Iterate (Increment'Access);
+   end Get_Extended_Summary;
+
    function Get_Gres (J : Job) return String is
    begin
       return To_String (J.Gres);
@@ -631,6 +682,11 @@ package body Slurm.Jobs is
    begin
       return To_String (J.Reservation);
    end Get_Reservation;
+
+   function Get_Sched_Eval_Time (J : Job) return Ada.Calendar.Time is
+   begin
+      return J.Last_Sched_Eval;
+   end Get_Sched_Eval_Time;
 
    function Get_Start_Time (J : Job) return Ada.Calendar.Time is
    begin
@@ -808,6 +864,8 @@ package body Slurm.Jobs is
          J.Has_Start_Time := True;
       end if;
       J.End_Time := Ada.Calendar.Conversions.To_Ada_Time (Interfaces.C.long (Ptr.all.end_time));
+      J.Last_Sched_Eval := Ada.Calendar.Conversions.To_Ada_Time
+        (Interfaces.C.long (Ptr.all.last_sched_eval));
       if Ptr.all.end_time = 0 then
          J.Has_End_Time := False;
       else

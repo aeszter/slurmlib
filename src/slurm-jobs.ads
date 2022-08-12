@@ -301,6 +301,23 @@ package Slurm.Jobs is
         WAIT_RESV_DELETED             -- Reservation was deleted */
                          );
 
+   type Extended_State is (
+                           Ext_RUNNING,
+                           Ext_SUSPENDED,
+                           Ext_Transit,
+                           Ext_PREEMPTED,
+                           Ext_DEADLINE,
+                           Ext_PRIORITY,
+                           Ext_DEPENDENCY,
+                           Ext_ARRAY_TASK_LIMIT,
+                           Ext_RESOURCES,
+                           Ext_TIME,
+                           Ext_HELD_USER,
+                           Ext_PENDING,
+                           Ext_Others
+                         );
+   type Extended_State_Count is array (Extended_State) of Natural;
+
    type Job is new Loggers.Logger with private;
    type Cursor is private;
    function Element (Position : Cursor) return Job;
@@ -340,8 +357,10 @@ package Slurm.Jobs is
    function Get_End_Time (J : Job) return Ada.Calendar.Time;
 
    function Walltime (J : Job) return Duration;
+   function Get_Sched_Eval_Time (J : Job) return Ada.Calendar.Time;
    function Get_State (J : Job) return String;
    function Get_State (J : Job) return states;
+   function Get_Extended_State (J : Job) return Extended_State;
    function Get_State_Description (J : Job) return String;
    function Get_State_Reason (J : Job) return state_reasons;
    function Get_Submission_Time (J : Job) return Ada.Calendar.Time;
@@ -369,6 +388,7 @@ package Slurm.Jobs is
    procedure Load_User (User : String);
 
    procedure Get_Summary (Jobs, Tasks : out State_Count);
+   procedure Get_Extended_Summary (Jobs, Tasks : out Extended_State_Count);
    function Get_Job (ID : Natural) return Job;
 
    function Get_Backfill return Ada.Calendar.Time;
@@ -399,6 +419,7 @@ private
       Start_Time : Ada.Calendar.Time;
       Has_End_Time : Boolean;
       End_Time       : Ada.Calendar.Time;
+      Last_Sched_Eval : Ada.Calendar.Time;
       Shared         : Boolean;
       State          : states;
       State_Desc     : Unbounded_String;
